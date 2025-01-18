@@ -22,6 +22,18 @@ api.interceptors.request.use(
   }
 );
 
+// Response Interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+      localStorage.removeItem('token');
+      window.location.href = '/login'; 
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth Services
 export const login = (email: string, password: string) => {
   return api.post('/auth/login', { email, password });

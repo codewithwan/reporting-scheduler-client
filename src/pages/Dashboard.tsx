@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchUserProfile } from '../services/api';
-import { FaHome, FaCalendarAlt, FaBars } from 'react-icons/fa';
+import { FaHome, FaCalendarAlt, FaBars, FaTimes } from 'react-icons/fa'; // Import FaTimes icon
 import { UserData } from '../models/UserData'; // Import UserData model
 
 // Component: Dashboard
@@ -38,6 +38,19 @@ const Dashboard = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutsideDrawer = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutsideDrawer);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideDrawer);
     };
   }, []);
 
@@ -98,7 +111,7 @@ const Dashboard = () => {
             <div className="flex justify-between h-16">
               <div className="flex items-center md:hidden">
                 <button onClick={toggleDrawer} className="text-gray-500 focus:outline-none">
-                  <FaBars size={24} />
+                  {isDrawerOpen ? <FaTimes size={24} /> : <FaBars size={24} />} {/* Toggle between FaBars and FaTimes */}
                 </button>
               </div>
               <div className="flex-1 flex justify-end items-center relative" ref={dropdownRef}>
