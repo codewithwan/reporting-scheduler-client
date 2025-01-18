@@ -1,5 +1,6 @@
 // Interface: UserData
 export interface UserData {
+  createdAt: string | number | Date;
   id: string;
   name: string;
   email: string;

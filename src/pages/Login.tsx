@@ -57,7 +57,7 @@ const Login = () => {
       <div className="flex items-center justify-center flex-[3] p-8 md:p-0 bg-white md:bg-transparent">
         <div className="w-full max-w-md space-y-6">
           <h2 className="text-3xl font-bold text-left mb-8">Login</h2>
-          {error && <div className="text-red-500 mb-4">{error}</div>} {/* Error message */}
+          {error && <div className="text-red-500 mb-4">{error}</div>} 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium">Email:</label>
