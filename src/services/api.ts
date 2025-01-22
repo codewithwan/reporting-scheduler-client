@@ -45,7 +45,11 @@ export const register = (email: string, password: string, name: string) => {
 
 // User Services
 export const fetchUserProfile = () => {
-  return api.get('/users/profile');
+  return api.get('/users/me');
+};
+
+export const fetchUsers = () => {
+  return api.get('/users');
 };
 
 export default api;
