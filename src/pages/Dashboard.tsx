@@ -63,7 +63,11 @@ const Dashboard = () => {
   }, []);
 
   const handleDateClick = (info: any) => {
-    alert(`You clicked on: ${info.dateStr}`);
+    console.log("date click", info);
+  };
+
+  const handleDateSelect = (selectInfo: any) => {
+    console.log(`Selected dates: ${selectInfo.startStr} to ${selectInfo.endStr}`);
   };
 
   const events = [
@@ -78,13 +82,13 @@ const Dashboard = () => {
         {/* Main Grid */}
         <div className="grid grid-rows-[auto_1fr] gap-4">
           {/* Top Row */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <FilterSection />
             <CreateButtonSection />
           </div>
           {/* Bottom Row */}
-          <div className="grid grid-cols-3 gap-4">
-            <CalendarSection events={events} handleDateClick={handleDateClick} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CalendarSection events={events} handleDateClick={handleDateClick} handleDateSelect={handleDateSelect} />
             <ReportSection events={events} />
           </div>
         </div>
@@ -129,18 +133,21 @@ const CreateButtonSection = () => (
   </div>
 );
 
-const CalendarSection = ({ events, handleDateClick }: { events: any[], handleDateClick: (info: any) => void }) => (
-  <div className="col-span-2 bg-white shadow-md p-4 rounded-md h-[calc(100vh-120px)]">
+const CalendarSection = ({ events, handleDateClick, handleDateSelect }: { events: any[], handleDateClick: (info: any) => void, handleDateSelect: (selectInfo: any) => void }) => (
+  <div className="col-span-1 md:col-span-2 bg-white shadow-md p-4 rounded-md h-[calc(100vh-120px)]">
     <FullCalendar
       plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
       initialView="dayGridMonth"
       headerToolbar={{
         left: "today,prev",
         center: "title",
-        right: "next,dayGridDay,timeGridWeek,dayGridMonth",
+        right: "next,timeGridWeek,dayGridMonth",
       }}
       events={events}
       dateClick={handleDateClick}
+      selectable={true}
+      select={handleDateSelect}
+      height="auto"
     />
   </div>
 );
