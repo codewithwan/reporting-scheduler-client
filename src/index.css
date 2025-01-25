@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mengatur tampilan tombol */
+.fc-toolbar-chunk .fc-button {
+  @apply bg-gray-100 border-gray-300 text-black px-3 py-1 rounded-md;
+}
+
+/* Warna hover yang sesuai */
+.fc-toolbar-chunk .fc-button:hover {
+  @apply bg-gray-400 border-gray-400;
+}
+
+/* Tampilan tombol yang aktif */
+.fc-toolbar-chunk .fc-button.fc-button-active {
+  @apply bg-purple-600 border-purple-600 text-white !important;
+}
+
+/* Tampilan tombol yang disabled */
+.fc-toolbar-chunk .fc-button:disabled {
+  @apply bg-white border-white text-gray-800 opacity-50;
+}
+
+/* Sesuaikan warna title */
+.fc-toolbar-title {
+  @apply text-gray-800 font-medium text-lg;
+}
+
+.fc .fc-col-header-cell {
+  @apply bg-purple-600 text-white;
+}
+
+.fc .fc-col-header-cell:first-child {
+  @apply rounded-tl-lg;
+}
+
+.fc .fc-col-header-cell:last-child {
+  @apply rounded-tr-lg;
+}
+
+.fc .fc-col-header-cell {
+  @apply border-none;
+}
+
+.fc .fc-scrollgrid {
+  @apply rounded-tl-lg rounded-tr-lg;
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+.fc-event {
+  background-color: transparent !important; /* Menghapus background */
+  border: none !important; /* Menghapus border */
+  outline: none !important; /* Menghapus outline */
+}
