@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { fetchProvinces, fetchCities, fetchUsers, createSchedule, fetchUserProfile, cancelSchedule } from "../services/api";
+import { fetchProvinces, fetchUsers, createSchedule, fetchUserProfile, cancelSchedule } from "../services/api";
 import { toUTC } from "../utils/dateUtils";
 import Alert from "./Alert";
 import ConfirmDialog from "./ConfirmDialog";
 import LoadingOverlay from "./LoadingOverlay";
 import Notification from "./Notification";
-import { FaChevronDown } from "react-icons/fa";
 import { Schedule } from "../models/Schedule";
 
 interface CreateScheduleModalProps {
@@ -19,7 +18,7 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   onClose,
   report,
 }) => {
-  const [name, setName] = useState("");
+  const [, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [engineer, setEngineer] = useState("");
@@ -28,15 +27,15 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   const [city, setCity] = useState("");
   const [description, setDescription] = useState("");
   const [engineers, setEngineers] = useState<{ id: string; name: string; email: string }[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [] = useState("");
+  const [] = useState(false);
   const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
-  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+  const [cities] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [userRole, setUserRole] = useState("");
+  const [, setUserRole] = useState("");
 
   useEffect(() => {
     // Fetch provinces data
@@ -82,19 +81,6 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
     }
   }, [report]);
 
-  const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedProvince = e.target.value;
-    setProvince(selectedProvince);
-    setCity("");
-
-    // Fetch cities data based on selected province
-    try {
-      const response = await fetchCities(selectedProvince);
-      setCities(response.data);
-    } catch (error) {
-      console.error("Failed to fetch cities:", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,9 +129,6 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
     }
   };
 
-  const filteredEngineers = engineers.filter((eng) =>
-    eng.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (!isOpen) return null;
 

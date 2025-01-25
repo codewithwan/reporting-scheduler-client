@@ -4,7 +4,6 @@ import { login } from "../services/api";
 import image from "../assets/image.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import LoadingOverlay from '../components/LoadingOverlay'; // Import LoadingOverlay component
-import Notification from '../components/Notification'; // Import Notification component
 
 interface LoginProps {
   showNotification: (message: string, type: "success" | "error") => void;
@@ -16,8 +15,7 @@ const Login: React.FC<LoginProps> = ({ showNotification }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [value, setValue] = useState("");
+  const [, setError] = useState("");
   const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 

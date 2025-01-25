@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/MainLayout";
 import FilterSection from "../components/FilterSection";
 import CreateButton from "../components/CreateButton";

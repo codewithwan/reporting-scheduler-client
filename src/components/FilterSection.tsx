@@ -1,4 +1,3 @@
-import React from "react";
 import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
 
 const FilterSection = () => {

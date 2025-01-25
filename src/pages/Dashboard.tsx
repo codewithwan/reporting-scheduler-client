@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { fetchUserProfile, fetchSchedules } from "../services/api";
-import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
 import { UserData } from "../models/UserData";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -16,10 +15,10 @@ import { toReadableGMT7 } from "../utils/dateUtils";
 import { Schedule } from "../models/Schedule";
 
 const Dashboard = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [, setUserData] = useState<UserData | null>(null);
+  const [, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [, setIsDrawerOpen] = useState(false);
   const calendarRef = useRef<FullCalendar | null>(null);
   const [todayDate, setTodayDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);

@@ -4,7 +4,6 @@ import { register } from '../services/api';
 import image from '../assets/image.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import LoadingOverlay from '../components/LoadingOverlay'; // Import LoadingOverlay component
-import Notification from '../components/Notification'; // Import Notification component
 
 interface RegisterProps {
   showNotification: (message: string, type: "success" | "error") => void;
