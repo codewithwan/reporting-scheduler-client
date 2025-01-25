@@ -95,7 +95,7 @@ const ReportList = () => {
           </div>
 
           {/* Create Button Section */}
-          <div className="sm:col-span-1 col-span-2 flex items-center shadow-md">
+          <div className="sm:col-span-1 col-span-2 flex items-center sm:rounded-lg rounded-md shadow-md">
             <button className="bg-purple-600 text-white py-3 font-medium w-full h-[calc(100%)] sm:text-xl text-sm sm:rounded-lg rounded-md shadow-md hover:bg-purple-700 transition-all duration-200">
               + Create
             </button>

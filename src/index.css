@@ -36,7 +36,7 @@
 }
 
 .fc .fc-col-header-cell:last-child {
-  @apply rounded-tr-lg; 
+  @apply rounded-tr-lg;
 }
 
 .fc .fc-col-header-cell {
@@ -50,4 +50,10 @@
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
+}
+
+.fc-event {
+  background-color: transparent !important; /* Menghapus background */
+  border: none !important; /* Menghapus border */
+  outline: none !important; /* Menghapus outline */
 }

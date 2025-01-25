@@ -33,8 +33,8 @@ const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav className="bg-white shadow-md fixed w-full z-30">
-      <div className="max-w-7xl sm:px-10 px-4 flex sm:justify-end justify-between h-16">
-        <button onClick={toggleDrawer} className="text-gray-500 md:hidden">
+      <div className="max-w-7xl sm:px-10 px-4 flex lg:justify-end justify-between h-16">
+        <button onClick={toggleDrawer} className="text-gray-500 lg:hidden">
           {isDrawerOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
         </button>
         {userData && (

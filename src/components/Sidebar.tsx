@@ -16,7 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isDrawerOpen, selectedMenu }) => (
   <nav
     className={`bg-white shadow-md w-64 fixed h-full transition-transform transform ${
       isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-    } md:translate-x-0 z-20`}
+    } lg:translate-x-0 z-20`}
   >
     <div className="h-20 flex items-center justify-center">
       <h1 className="text-xl md:text-2xl font-bold text-gray-800">

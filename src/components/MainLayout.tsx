@@ -29,7 +29,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-100 font-poppins flex">
       <Sidebar isDrawerOpen={isDrawerOpen} selectedMenu={location.pathname} />
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 lg:ml-64">
         <Navbar
           toggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}
           isDrawerOpen={isDrawerOpen}
