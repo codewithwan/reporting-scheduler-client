@@ -48,4 +48,8 @@ export const fetchUserProfile = () => {
   return api.get('/users/profile');
 };
 
+export const fetchUsers = () => {
+  return api.get('/users');
+};
+
 export default api;
