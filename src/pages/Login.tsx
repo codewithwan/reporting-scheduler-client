@@ -1,18 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/api";
 import image from "../assets/image.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import LoadingOverlay from '../components/LoadingOverlay'; // Import LoadingOverlay component
+import Notification from '../components/Notification'; // Import Notification component
+
+interface LoginProps {
+  showNotification: (message: string, type: "success" | "error") => void;
+}
 
 // Component: Login
-const Login = () => {
+const Login: React.FC<LoginProps> = ({ showNotification }) => {
   // State Hooks
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   // Helper Functions
   const validateEmail = (email: string) => {
@@ -22,29 +36,38 @@ const Login = () => {
 
   // Event Handlers
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission
+    setError(""); // Clear previous error
     if (!validateEmail(email)) {
-      setError("Invalid email format.");
+      showNotification("Invalid email format.", "error");
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      showNotification("Password must be at least 8 characters long.", "error");
       return;
     }
+    setLoading(true); // Set loading to true
     try {
       const response = await login(email, password);
-      localStorage.setItem("token", response.data.token);
-      console.log("Login successful:", response.data);
-      navigate("/dashboard");
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        console.log("Login successful:", response.data);
+        navigate("/dashboard");
+      } else {
+        showNotification("Invalid email or password. Please try again.", "error");
+      }
     } catch (error) {
       console.error("Login failed:", error);
-      setError("Invalid email or password. Please try again.");
+      showNotification("Invalid email or password. Please try again.", "error");
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
   // JSX
   return (
-    <div className="flex flex-col min-h-screen font-poppins bg-white md:flex-row">
+    <div className="relative flex flex-col min-h-screen font-poppins bg-white md:flex-row">
+      {loading && <LoadingOverlay />} {/* Show loading overlay */}
       <div className="relative flex items-center justify-center bg-white md:flex-[2] md:order-2 rounded-tl-2xl rounded-bl-2xl md:bg-[#DDACF5]">
         <div
           className="absolute w-[80%] h-[50%] bg-[#DDACF5] rounded-tl-lg rounded-bl-lg rounded-tr-lg"
@@ -61,8 +84,6 @@ const Login = () => {
       <div className="flex items-center justify-center flex-[3] p-8 md:p-0 bg-white md:bg-transparent">
         <div className="w-full max-w-md space-y-6">
           <h2 className="text-3xl font-bold text-left mb-8">Login</h2>
-          {error && <div className="text-red-500 mb-4">{error}</div>}{" "}
-          {/* Error message */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium">Email:</label>

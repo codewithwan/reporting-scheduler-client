@@ -28,7 +28,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && (error.response.status === 403 || error.response.status === 401)) {
       localStorage.removeItem('token');
-      window.location.href = '/login'; 
+      // Show notification instead of redirecting
+      const notificationEvent = new CustomEvent('showNotification', {
+        detail: {
+          message: 'You do not have permission to access this resource.',
+          type: 'error',
+        },
+      });
+      window.dispatchEvent(notificationEvent);
     }
     return Promise.reject(error);
   }
@@ -45,7 +52,37 @@ export const register = (email: string, password: string, name: string) => {
 
 // User Services
 export const fetchUserProfile = () => {
-  return api.get('/users/profile');
+  return api.get('/users/me');
+};
+
+export const fetchUsers = () => {
+  return api.get('/protected/users');
+};
+
+// Location Services
+export const fetchProvinces = () => {
+  return axios.get('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+};
+
+export const fetchCities = (provinceId: string) => {
+  return axios.get(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+};
+
+// Schedule Services
+export const createSchedule = (scheduleData: any) => {
+  return api.post('/schedule', scheduleData);
+};
+
+export const fetchSchedules = () => {
+  return api.get('/schedule');
+};
+
+export const updateScheduleStatus = (id: string, status: string) => {
+  return api.patch(`/schedule/${id}/status`, { status });
+};
+
+export const cancelSchedule = (id: string) => {
+  return api.patch(`/schedule/${id}/status`, { status: 'CANCELED' });
 };
 
 export default api;

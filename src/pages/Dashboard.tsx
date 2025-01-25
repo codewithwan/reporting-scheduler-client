@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { fetchUserProfile } from "../services/api";
+import { fetchUserProfile, fetchSchedules } from "../services/api";
 import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
 import { UserData } from "../models/UserData";
 import FullCalendar from "@fullcalendar/react";
@@ -8,6 +8,12 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import MainLayout from "../components/MainLayout";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import LoadingOverlay from "../components/LoadingOverlay";
+import FilterSection from "../components/FilterSection";
+import CreateButton from "../components/CreateButton";
+import CreateScheduleModal from "../components/CreateScheduleModal";
+import { toReadableGMT7 } from "../utils/dateUtils";
+import { Schedule } from "../models/Schedule";
 
 const Dashboard = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -16,9 +22,21 @@ const Dashboard = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const calendarRef = useRef<FullCalendar | null>(null);
   const [todayDate, setTodayDate] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const months: string[] = [
     "January",
@@ -40,8 +58,15 @@ const Dashboard = () => {
       try {
         const response = await fetchUserProfile();
         setUserData(response.data);
+        setUserRole(response.data.role);
+        if (response.data.role !== 'engineer') {
+          // Fetch additional user data if role is not engineer
+          // ...fetch additional data logic...
+        }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -111,43 +136,7 @@ const Dashboard = () => {
     };
   }, []);
 
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      name: "Server Maintenance",
-      engineer: "John Doe",
-      date: "2025-01-22",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      name: "Network Input",
-      engineer: "Jane Mith",
-      date: "2025-01-23",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Processing",
-    },
-    {
-      id: 5,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-  ]);
+  const [reports, setReports] = useState<Schedule[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const maxItemsPerPage = 3;
@@ -227,57 +216,46 @@ const Dashboard = () => {
     }
   };
 
-  const events = [
-    { title: "09:47", date: "2025-01-20", extendedProps: { color: "red" } },
-    { title: "20:17", date: "2025-01-20", extendedProps: { color: "green" } },
-  ];
+  const [events, setEvents] = useState<{ title: string; date: string; extendedProps: { color: string } }[]>([]);
+
+  useEffect(() => {
+    const getSchedules = async () => {
+      try {
+        const response = await fetchSchedules();
+        const schedules: Schedule[] = response.data.map((schedule: Schedule) => ({
+          ...schedule,
+          executeAt: new Date(schedule.executeAt).toISOString(), // Ensure the date is in ISO format
+        }));
+        const calendarEvents = schedules.map((schedule) => ({
+          title: new Date(schedule.executeAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          date: schedule.executeAt,
+          extendedProps: { 
+            color: schedule.status === "ACCEPTED" ? "green" :
+                   schedule.status === "RESCHEDULED" ? "blue" :
+                   schedule.status === "PENDING" ? "yellow" :
+                   schedule.status === "REJECTED" ? "red" :
+                   "gray"
+          },
+        }));
+        setEvents(calendarEvents);
+        setReports(schedules);
+      } catch (error) {
+        console.error("Failed to fetch schedules:", error);
+      }
+    };
+
+    getSchedules();
+  }, []);
 
   return (
     <MainLayout>
+      {isLoading && <LoadingOverlay />}
       {/* Main Grid */}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid grid-rows-[auto_1fr] gap-4">
         {/* Top Row */}
         <div className="grid grid-cols-6 gap-4 sm:h-20 items-stretch">
-          {/* Filter Section */}
-          <div className="sm:col-span-5 col-span-4 flex sm:flex-wrap flex-nowrap items-stretch border sm:rounded-lg rounded-md shadow-md">
-            {/* Filter Buttons */}
-            <span className="flex items-center justify-center sm:px-4 ps-3 bg-gray-50 text-gray-500 font-medium border-gray-300 sm:rounded-l-lg rounded-l-md">
-              <FaFilter />
-            </span>
-
-            <span className="flex items-center justify-center sm:px-4 ps-1 pe-3 bg-gray-50 text-gray-700 font-medium sm:text-base text-sm sm:border-l border-gray-300">
-              Filter By
-            </span>
-
-            {/* Hidden on small screens */}
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>yyyy-mm-dd</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>Order Type</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="flex items-center justify-between flex-1 sm:px-4 px-3 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>City</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            {/* Reset Button (hidden on small screens) */}
-            <button className="hidden sm:flex items-center justify-center px-4 bg-gray-50 text-red-500 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-red-50 focus:outline-none">
-              <FaRedo className="mr-2" />
-              Reset Filter
-            </button>
-          </div>
-
-          {/* Create Button Section */}
-          <div className="sm:col-span-1 col-span-2 flex items-center sm:rounded-lg rounded-md shadow-md">
-            <button className="bg-purple-600 text-white py-3 font-medium w-full h-[calc(100%)] sm:text-xl text-sm sm:rounded-lg rounded-md shadow-md hover:bg-purple-700 transition-all duration-200">
-              + Create
-            </button>
-          </div>
+          <FilterSection />
+          <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>
 
         {/* Bottom Row */}
@@ -351,7 +329,7 @@ const Dashboard = () => {
                     right: "",
                   }}
                   contentHeight="auto"
-                  events = {events}
+                  events={events}
                   eventContent={(eventInfo) => (
                     <div className="flex items-center">
                       {/* Teks event dengan warna bergantian */}
@@ -359,7 +337,13 @@ const Dashboard = () => {
                         className={`font-semibold ${
                           eventInfo.event._def.extendedProps.color === "green"
                             ? "text-green-500"
-                            : "text-red-500"
+                            : eventInfo.event._def.extendedProps.color === "blue"
+                            ? "text-blue-500"
+                            : eventInfo.event._def.extendedProps.color === "yellow"
+                            ? "text-yellow-500"
+                            : eventInfo.event._def.extendedProps.color === "red"
+                            ? "text-red-500"
+                            : "text-gray-500"
                         }`}
                       >
                         {eventInfo.event.title}
@@ -393,7 +377,13 @@ const Dashboard = () => {
                       className={`font-semibold ${
                         eventInfo.event._def.extendedProps.color === "green"
                           ? "text-green-500"
-                          : "text-red-500"
+                          : eventInfo.event._def.extendedProps.color === "blue"
+                          ? "text-blue-500"
+                          : eventInfo.event._def.extendedProps.color === "yellow"
+                          ? "text-yellow-500"
+                          : eventInfo.event._def.extendedProps.color === "red"
+                          ? "text-red-500"
+                          : "text-gray-500"
                       }`}
                     >
                       {eventInfo.event.title}
@@ -416,30 +406,34 @@ const Dashboard = () => {
                     className="bg-white p-4 shadow-md rounded-md border-t"
                   >
                     <h3 className="text-sm font-medium text-gray-700 mb-2 border-b pb-2">
-                      {report.name}
+                      {report.taskName}
                     </h3>
                     <div className="text-sm text-gray-500">
                       <p className="flex">
                         <span className="w-1/3 font-bold">ENGINEER</span>
                         <span className="w-2/3 font-semibold">
-                          : {report.engineer}
+                          : {report.engineerName}
                         </span>
                       </p>
                       <p className="flex">
                         <span className="w-1/3 font-bold">DATE</span>
                         <span className="w-2/3 font-semibold">
-                          : {report.date}
+                          : {toReadableGMT7(report.executeAt)}
                         </span>
                       </p>
                       <p className="flex">
                         <span className="w-1/3 font-bold">STATUS</span>
                         <span
                           className={`w-2/3 font-semibold ${
-                            report.status === "Completed"
+                            report.status === "ACCEPTED"
                               ? "text-green-600"
-                              : report.status === "Processing"
+                              : report.status === "RESCHEDULED"
                               ? "text-blue-600"
-                              : "text-red-600"
+                              : report.status === "PENDING"
+                              ? "text-yellow-600"
+                              : report.status === "REJECTED"
+                              ? "text-red-600"
+                              : "text-gray-600"
                           }`}
                         >
                           <span className="text-gray-500">:</span>{" "}
@@ -483,6 +477,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </MainLayout>
   );
 };

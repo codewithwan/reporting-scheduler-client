@@ -1,105 +1,104 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
 import MainLayout from "../components/MainLayout";
+import FilterSection from "../components/FilterSection";
+import CreateButton from "../components/CreateButton";
+import LoadingOverlay from "../components/LoadingOverlay";
+import { fetchUserProfile, fetchSchedules, updateScheduleStatus } from "../services/api";
+import CreateScheduleModal from "../components/CreateScheduleModal";
+import { Schedule } from "../models/Schedule";
+import { toReadableGMT7 } from "../utils/dateUtils";
 
 const ReportList = () => {
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      name: "Server Maintenance",
-      engineer: "John Doe",
-      date: "2025-01-22",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      name: "Network Input",
-      engineer: "Jane Mith",
-      date: "2025-01-23",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Processing",
-    },
-    {
-      id: 5,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-  ]);
+  const [reports, setReports] = useState<Schedule[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Schedule | null>(null);
 
-  const handleAccept = (id: number) => {
-    alert(`Accepted report with ID: ${id}`);
-    // Implementasikan logika Accept di sini
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetchSchedules();
+        const schedules: Schedule[] = response.data.map((schedule: Schedule) => ({
+          ...schedule,
+          executeAt: toReadableGMT7(schedule.executeAt),
+        }));
+        setReports(schedules);
+      } catch (error) {
+        // console.error("Failed to fetch reports:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchUserRole = async () => {
+      try {
+        const response = await fetchUserProfile();
+        setUserRole(response.data.role);
+        if (response.data.role !== 'engineer') {
+          // Fetch additional user data if role is not engineer
+          // ...fetch additional data logic...
+        }
+      } catch (error) {
+        // console.error("Failed to fetch user role:", error);
+      }
+    };
+
+    fetchReports();
+    fetchUserRole();
+  }, []);
+
+  const handleAccept = async (id: string) => {
+    try {
+      await updateScheduleStatus(id, "ACCEPTED");
+      // Optionally, refetch the reports to update the UI
+      const response = await fetchSchedules();
+      const schedules: Schedule[] = response.data.map((schedule: Schedule) => ({
+        ...schedule,
+        executeAt: toReadableGMT7(schedule.executeAt),
+      }));
+      setReports(schedules);
+    } catch (error) {
+      // console.error("Failed to accept report:", error);
+    }
   };
 
-  const handleReschedule = (id: number) => {
-    alert(`Rescheduled report with ID: ${id}`);
-    // Implementasikan logika Reschedule di sini
+  const handleReschedule = (report: Schedule) => {
+    setSelectedReport(report);
+    setIsModalOpen(true);
   };
 
-  const handleReject = (id: number) => {
-    alert(`Rejected report with ID: ${id}`);
-    // Implementasikan logika Reject di sini
+  const handleReject = async (id: string) => {
+    try {
+      await updateScheduleStatus(id, "REJECTED");
+      // Optionally, refetch the reports to update the UI
+      const response = await fetchSchedules();
+      const schedules: Schedule[] = response.data.map((schedule: Schedule) => ({
+        ...schedule,
+        executeAt: toReadableGMT7(schedule.executeAt),
+      }));
+      setReports(schedules);
+    } catch (error) {
+      // console.error("Failed to reject report:", error);
+    }
+  };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
     <MainLayout>
+      {isLoading && <LoadingOverlay />}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid gap-4">
         <div className="grid grid-cols-6 gap-4 sm:h-20 items-stretch">
-          {/* Filter Section */}
-          <div className="sm:col-span-5 col-span-4 flex sm:flex-wrap flex-nowrap items-stretch border sm:rounded-lg rounded-md shadow-md">
-            {/* Filter Buttons */}
-            <span className="flex items-center justify-center sm:px-4 ps-3 bg-gray-50 text-gray-500 font-medium border-gray-300 sm:rounded-l-lg rounded-l-md">
-              <FaFilter />
-            </span>
-
-            <span className="flex items-center justify-center sm:px-4 ps-1 pe-3 bg-gray-50 text-gray-700 font-medium sm:text-base text-sm sm:border-l border-gray-300">
-              Filter By
-            </span>
-
-            {/* Hidden on small screens */}
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>yyyy-mm-dd</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>Order Type</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="flex items-center justify-between flex-1 sm:px-4 px-3 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>City</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            {/* Reset Button (hidden on small screens) */}
-            <button className="hidden sm:flex items-center justify-center px-4 bg-gray-50 text-red-500 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-red-50 focus:outline-none">
-              <FaRedo className="mr-2" />
-              Reset Filter
-            </button>
-          </div>
-
-          {/* Create Button Section */}
-          <div className="sm:col-span-1 col-span-2 flex items-center sm:rounded-lg rounded-md shadow-md">
-            <button className="bg-purple-600 text-white py-3 font-medium w-full h-[calc(100%)] sm:text-xl text-sm sm:rounded-lg rounded-md shadow-md hover:bg-purple-700 transition-all duration-200">
-              + Create
-            </button>
-          </div>
+          <FilterSection />
+          <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>
 
         {/* Report List Table */}
@@ -128,46 +127,96 @@ const ReportList = () => {
               {reports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-100">
                   <td className="px-6 py-4 text-sm font-medium text-gray-700 border-b">
-                    {report.name}
+                    {report.taskName}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700 border-b">
-                    {report.engineer}
+                    {report.engineerName}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700 border-b">
-                    {report.date}
+                    {report.executeAt}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium border-b text-center">
                     <span
                       className={`${
-                        report.status === "Completed"
+                        report.status === "ACCEPTED"
                           ? "text-green-600"
-                          : report.status === "Processing"
+                          : report.status === "RESCHEDULED"
                           ? "text-blue-600"
-                          : "text-red-600"
+                          : report.status === "PENDING"
+                          ? "text-yellow-600"
+                          : report.status === "REJECTED"
+                          ? "text-red-600"
+                          : "text-gray-600"
                       }`}
                     >
                       {report.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center border-b space-x-2">
-                    <button
-                      onClick={() => handleAccept(report.id)}
-                      className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500 whitespace-nowrap"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleReschedule(report.id)}
-                      className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500 whitespace-nowrap"
-                    >
-                      Reschedule
-                    </button>
-                    <button
-                      onClick={() => handleReject(report.id)}
-                      className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500 whitespace-nowrap"
-                    >
-                      Reject
-                    </button>
+                  <td className="px-6 py-4 text-center border-b space-x-2 h-16">
+                    {report.status === "PENDING" && (
+                      <>
+                        {userRole === "ENGINEER" && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(report.id)}
+                              className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500 whitespace-nowrap"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleReschedule(report)}
+                              className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500 whitespace-nowrap"
+                            >
+                              Reschedule
+                            </button>
+                          </>
+                        )}
+                        {userRole === "ADMIN" && (
+                          <>
+                            <button
+                              onClick={() => handleReschedule(report)}
+                              className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500 whitespace-nowrap"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              onClick={() => handleReject(report.id)}
+                              className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500 whitespace-nowrap"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                    {report.status === "RESCHEDULED" && (
+                      <>
+                        {userRole === "ADMIN" && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(report.id)}
+                              className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500 whitespace-nowrap"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleReject(report.id)}
+                              className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500 whitespace-nowrap"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                    {report.status === "REJECTED" && userRole === "ENGINEER" && (
+                      <button
+                        onClick={() => handleAccept(report.id)}
+                        className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500 whitespace-nowrap"
+                      >
+                        Accept
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -182,57 +231,108 @@ const ReportList = () => {
                 className="bg-white p-4 shadow-md rounded-md"
               >
                 <h3 className="text-sm font-medium text-gray-700 mb-2 border-b pb-2">
-                  {report.name}
+                  {report.taskName}
                 </h3>
                 <div className="text-sm text-gray-500">
                   <p className="flex">
                     <span className="w-1/3 font-bold">ENGINEER</span>
-                    <span className="w-2/3 font-semibold">: {report.engineer}</span>
+                    <span className="w-2/3 font-semibold">: {report.engineerName}</span>
                   </p>
                   <p className="flex">
                     <span className="w-1/3 font-bold">DATE</span>
-                    <span className="w-2/3 font-semibold">: {report.date}</span>
+                    <span className="w-2/3 font-semibold">: {report.executeAt}</span>
                   </p>
                   <p className="flex">
                     <span className="w-1/3 font-bold">STATUS</span>
                     <span
                       className={`w-2/3 font-semibold ${
-                        report.status === "Completed"
+                        report.status === "ACCEPTED"
                           ? "text-green-600"
-                          : report.status === "Processing"
+                          : report.status === "RESCHEDULED"
                           ? "text-blue-600"
-                          : "text-red-600"
+                          : report.status === "PENDING"
+                          ? "text-yellow-600"
+                          : report.status === "REJECTED"
+                          ? "text-red-600"
+                          : "text-gray-600"
                       }`}
                     >
                       <span className="text-gray-500">:</span> {report.status}
                     </span>
                   </p>
                 </div>
-                <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2">
-                  <button
-                    onClick={() => handleAccept(report.id)}
-                    className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleReschedule(report.id)}
-                    className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                  >
-                    Reschedule
-                  </button>
-                  <button
-                    onClick={() => handleReject(report.id)}
-                    className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                  >
-                    Reject
-                  </button>
+                <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
+                  {report.status === "PENDING" && (
+                    <>
+                      {userRole === "ENGINEER" && (
+                        <>
+                          <button
+                            onClick={() => handleAccept(report.id)}
+                            className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleReschedule(report)}
+                            className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                          >
+                            Reschedule
+                          </button>
+                        </>
+                      )}
+                      {userRole === "ADMIN" && (
+                        <>
+                          <button
+                            onClick={() => handleReschedule(report)}
+                            className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                          >
+                            Reschedule
+                          </button>
+                          <button
+                            onClick={() => handleReject(report.id)}
+                            className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                  {report.status === "RESCHEDULED" && (
+                    <>
+                      {userRole === "ADMIN" && (
+                        <>
+                          <button
+                            onClick={() => handleAccept(report.id)}
+                            className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleReject(report.id)}
+                            className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </>
+                  )}
+                  {report.status === "REJECTED" && userRole === "ENGINEER" && (
+                    <button
+                      onClick={() => handleAccept(report.id)}
+                      className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                    >
+                      Accept
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} report={selectedReport} />
     </MainLayout>
   );
 };

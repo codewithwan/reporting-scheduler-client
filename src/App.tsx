@@ -4,8 +4,10 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LoadingOverlay from "./components/LoadingOverlay";
+import Notification from "./components/Notification"; // Import Notification component
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -15,14 +17,44 @@ const ReportList = lazy(() => import("./pages/ReportList"));
 
 function App() {
   const token = localStorage.getItem("token");
+  const [notification, setNotification] = useState("");
+  const [notificationType, setNotificationType] = useState<"success" | "error">("error");
+
+  const showNotification = (message: string, type: "success" | "error") => {
+    setNotification(message);
+    setNotificationType(type);
+    setTimeout(() => {
+      setNotification("");
+    }, 3000);
+  };
+
+  useEffect(() => {
+    const handleShowNotification = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      showNotification(customEvent.detail.message, customEvent.detail.type);
+    };
+
+    window.addEventListener('showNotification', handleShowNotification as EventListener);
+
+    return () => {
+      window.removeEventListener('showNotification', handleShowNotification);
+    };
+  }, []);
 
   return (
     <Router>
       <div className="font-poppins">
-        <Suspense fallback={<div>Loading...</div>}>
+        {notification && (
+          <Notification
+            message={notification}
+            type={notificationType}
+            onClose={() => setNotification("")}
+          />
+        )}
+        <Suspense fallback={<LoadingOverlay />}>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login showNotification={showNotification} />} />
+            <Route path="/register" element={<Register showNotification={showNotification} />} />
             <Route
               path="/dashboard"
               element={
