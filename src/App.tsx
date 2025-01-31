@@ -7,13 +7,16 @@ import {
 import { lazy, Suspense, useState, useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingOverlay from "./components/LoadingOverlay";
-import Notification from "./components/Notification"; // Import Notification component
+import Notification from "./components/Notification";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ReportList = lazy(() => import("./pages/ReportList"));
+const EngineerList = lazy(() => import("./pages/EngineerList"));
+const CustomerList = lazy(() => import("./pages/CustomerList"));
+const ProductList = lazy(() => import("./pages/ProductList"));
 
 function App() {
   const token = localStorage.getItem("token");
@@ -68,6 +71,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ReportList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/engineers"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
+                  <EngineerList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
+                  <CustomerList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
+                  <ProductList />
                 </ProtectedRoute>
               }
             />

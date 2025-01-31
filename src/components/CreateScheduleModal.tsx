@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { fetchProvinces, fetchUsers, createSchedule, fetchUserProfile, cancelSchedule } from "../services/api";
+import {
+  fetchProvinces,
+  fetchUsers,
+  createSchedule,
+  fetchUserProfile,
+  cancelSchedule,
+  fetchCustomers,
+  fetchProducts,
+} from "../services/api";
 import { toUTC } from "../utils/dateUtils";
 import Alert from "./Alert";
 import ConfirmDialog from "./ConfirmDialog";
@@ -19,22 +27,37 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   report,
 }) => {
   const [, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [start_date, setStartDate] = useState("");
+  const [end_date, setEndDate] = useState("");
   const [engineer, setEngineer] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [product, setProduct] = useState("");
   const [category, setCategory] = useState("");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
   const [description, setDescription] = useState("");
-  const [engineers, setEngineers] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [engineers, setEngineers] = useState<
+    { id: string; name: string; email: string }[]
+  >([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const [products, setProducts] = useState<
+    { id: string; brand: string; model: string }[]
+  >([]);
   const [] = useState("");
   const [] = useState(false);
-  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([]);
+  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [cities] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [, setUserRole] = useState("");
 
   useEffect(() => {
@@ -50,12 +73,36 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
 
     getProvinces();
 
+    // Fetch customers data
+    const getCustomers = async () => {
+      try {
+        const response = await fetchCustomers();
+        setCustomers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+      }
+    };
+
+    getCustomers();
+
+    // Fetch products data
+    const getProducts = async () => {
+      try {
+        const response = await fetchProducts();
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    getProducts();
+
     // Fetch user role
     const getUserRole = async () => {
       try {
         const response = await fetchUserProfile();
         setUserRole(response.data.role);
-        if (response.data.role !== 'ENGINEER') {
+        if (response.data.role !== "ENGINEER") {
           // Fetch users data if role is not ENGINEER
           const usersResponse = await fetchUsers();
           setEngineers(usersResponse.data);
@@ -71,22 +118,29 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   useEffect(() => {
     if (report) {
       setName(report.taskName);
-      setDate(new Date(report.executeAt).toISOString().split('T')[0]);
-      setTime(new Date(report.executeAt).toISOString().split('T')[1].slice(0, 5));
+      setStartDate(new Date(report.startDate).toISOString().split("T")[0]);
+      setEndDate(new Date(report.endDate).toISOString().split("T")[0]);
       setEngineer(report.engineerName);
+      setCustomer(report.customer_id);
+      setProduct(report.product_id);
       setCategory(report.taskName);
-      setProvince(report.location.split(', ')[1]);
-      setCity(report.location.split(', ')[0]);
-      setDescription(report.activity);
+      setProvince(report.location?.split(", ")[1] || "");
+      setCity(report.location?.split(", ")[0] || "");
+      setDescription(report.activity || "");
     }
   }, [report]);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!report && !engineers.find((eng) => eng.name === engineer)) {
+    if (!engineers.find((eng) => eng.name === engineer)) {
       setAlertMessage("Please select a valid engineer from the list.");
+      return;
+    } else if (!customers.find((eng) => eng.name === customer)) {
+      setAlertMessage("Please select a valid customer from the list.");
+      return;
+    } else if (!products.find((eng) => eng.brand === product)) {
+      setAlertMessage("Please select a valid product from the list.");
       return;
     }
 
@@ -97,45 +151,82 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
     setIsLoading(true);
     setConfirmMessage("");
 
-    const executeAt = toUTC(new Date(`${date}T${time}:00`));
-    const engineerId = report ? report.engineerId : engineers.find((eng) => eng.name === engineer)?.id;
-    const location = `${cities.find((c) => c.id === city)?.name}, ${provinces.find((p) => p.id === province)?.name}`;
-    const activity = description || "No additional details provided";
-    const phoneNumber = "647438834423"; // Static phone number
-
-    const scheduleData = {
-      taskName: category,
-      executeAt,
-      engineerId,
-      location,
-      activity,
-      phoneNumber,
-    };
-
-    console.log("Schedule Data:", scheduleData); // Debugging line
-
     try {
+      const engineerId = report
+        ? report.engineer_id
+        : engineers.find((eng) => eng.name === engineer)?.id;
+
+      if (!engineerId) {
+        throw new Error("Engineer ID not found.");
+      }
+
+      const customerId = report
+        ? report.customer_id
+        : customers.find((eng) => eng.name === customer)?.id;
+
+      if (!customerId) {
+        throw new Error("Customer ID not found.");
+      }
+
+      const productId = report
+        ? report.product_id
+        : products.find((eng) => eng.brand === product)?.id;
+
+      if (!productId) {
+        throw new Error("Product ID not found.");
+      }
+
+      const startDate = toUTC(new Date(`${start_date}T12:00:00`));
+      const endDate = toUTC(new Date(`${end_date}T12:00:00`));
+
+      const location = `${city}, ${province}`;
+      const activity = description || "No additional details provided";
+      const phoneNumber = "647438834423"; // Static phone number
+
+      const scheduleData = {
+        taskName: category,
+        startDate,
+        endDate,
+        engineerId,
+        customerId,
+        productId,
+        location,
+        activity,
+        phoneNumber,
+      };
+
       if (report) {
         await cancelSchedule(report.id);
       }
+
       await createSchedule(scheduleData);
-      setNotification({ message: "Schedule created successfully!", type: "success" });
+      window.location.reload();
+
+      setNotification({
+        message: "Schedule created successfully!",
+        type: "success",
+      });
+
       onClose();
     } catch (error) {
       console.error("Failed to create schedule:", error);
-      setNotification({ message: "Failed to create schedule. Please try again.", type: "error" });
+      setNotification({
+        message: "Failed to create schedule. Please try again.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       {isLoading && <LoadingOverlay />}
-      {alertMessage && <Alert message={alertMessage} onClose={() => setAlertMessage("")} />}
+      {alertMessage && (
+        <Alert message={alertMessage} onClose={() => setAlertMessage("")} />
+      )}
       {confirmMessage && (
         <ConfirmDialog
           message={confirmMessage}
@@ -159,49 +250,99 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full px-3 py-2 border rounded"
-              disabled
               required
             >
-              <option value="" disabled>Select a category</option>
-              <option value="Billed Service/Repair">Billed Service/Repair</option>
+              <option value="" disabled>
+                Select a category
+              </option>
+              <option value="Billed Service/Repair">
+                Billed Service/Repair
+              </option>
               <option value="Service Contract">Service Contract</option>
-              <option value="Warranty Installation">Warranty Installation</option>
+              <option value="Warranty Installation">
+                Warranty Installation
+              </option>
               <option value="Training">Training</option>
               <option value="Service Visit">Service Visit</option>
             </select>
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Engineer</label>
-            <input
-              type="text"
+            <select
               value={engineer}
+              onChange={(e) => setEngineer(e.target.value)}
               className="w-full px-3 py-2 border rounded"
-              disabled
-            />
+              required
+            >
+              <option value="" disabled>
+                Select an engineer
+              </option>
+              {engineers.map((engineer) => (
+                <option key={engineer.id} value={engineer.name}>
+                  {engineer.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Customer</label>
+            <select
+              value={customer}
+              onChange={(e) => setCustomer(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="" disabled>
+                Select a customer
+              </option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.name}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Product</label>
+            <select
+              value={product}
+              onChange={(e) => setProduct(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            >
+              <option value="" disabled>
+                Select a product
+              </option>
+              {products.map((product) => (
+                <option key={product.id} value={product.brand}>
+                  {product.brand}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="mb-4 flex space-x-4">
             <div className="w-1/2">
-              <label className="block text-gray-700">Date</label>
+              <label className="block text-gray-700">Start Date</label>
               <input
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                value={start_date}
+                onChange={(e) => setStartDate(e.target.value)}
                 className="w-full px-3 py-2 border rounded"
                 required
               />
             </div>
             <div className="w-1/2">
-              <label className="block text-gray-700">Time</label>
+              <label className="block text-gray-700">End Date</label>
               <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
+                type="date"
+                value={end_date}
+                onChange={(e) => setEndDate(e.target.value)}
                 className="w-full px-3 py-2 border rounded"
                 required
               />
             </div>
           </div>
-          <div className="mb-4 flex space-x-4">
+          {/* <div className="mb-4 flex space-x-4">
             <div className="w-1/2">
               <label className="block text-gray-700">Province</label>
               <input
@@ -220,9 +361,9 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
                 disabled
               />
             </div>
-          </div>
+          </div> */}
           <div className="mb-4">
-            <label className="block text-gray-700">Description (Optional)</label>
+            <label className="block text-gray-700">Activity</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

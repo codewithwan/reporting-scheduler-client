@@ -1,41 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../services/api";
+import { login, fetchUserProfile } from "../services/api";
 import image from "../assets/image.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import LoadingOverlay from '../components/LoadingOverlay'; // Import LoadingOverlay component
+import LoadingOverlay from "../components/LoadingOverlay";
 
 interface LoginProps {
   showNotification: (message: string, type: "success" | "error") => void;
 }
 
-// Component: Login
 const Login: React.FC<LoginProps> = ({ showNotification }) => {
-  // State Hooks
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [navigate]);
 
-  // Helper Functions
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
 
-  // Event Handlers
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
-    setError(""); // Clear previous error
+    e.preventDefault();
+    setError("");
     if (!validateEmail(email)) {
       showNotification("Invalid email format.", "error");
       return;
@@ -44,28 +40,39 @@ const Login: React.FC<LoginProps> = ({ showNotification }) => {
       showNotification("Password must be at least 8 characters long.", "error");
       return;
     }
-    setLoading(true); // Set loading to true
+    setLoading(true);
+
     try {
+      // Login API Call
       const response = await login(email, password);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
-        console.log("Login successful:", response.data);
+
+        // Fetch user profile to get role
+        const profileResponse = await fetchUserProfile();
+        const userRole = profileResponse.data.role;
+        localStorage.setItem("role", userRole); // Simpan role ke localStorage
+        console.log("User role:", userRole);
+
+        showNotification("Login successful!", "success");
         navigate("/dashboard");
       } else {
-        showNotification("Invalid email or password. Please try again.", "error");
+        showNotification(
+          "Invalid email or password. Please try again.",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Login failed:", error);
       showNotification("Invalid email or password. Please try again.", "error");
     } finally {
-      setLoading(false); // Set loading to false
+      setLoading(false);
     }
   };
 
-  // JSX
   return (
     <div className="relative flex flex-col min-h-screen font-poppins bg-white md:flex-row">
-      {loading && <LoadingOverlay />} {/* Show loading overlay */}
+      {loading && <LoadingOverlay />}
       <div className="relative flex items-center justify-center bg-white md:flex-[2] md:order-2 rounded-tl-2xl rounded-bl-2xl md:bg-[#DDACF5]">
         <div
           className="absolute w-[80%] h-[50%] bg-[#DDACF5] rounded-tl-lg rounded-bl-lg rounded-tr-lg"
@@ -107,7 +114,7 @@ const Login: React.FC<LoginProps> = ({ showNotification }) => {
                 onClick={() => setShowPassword(!showPassword)}
                 style={{ top: "18px" }}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye /> }
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
             </div>
             <div className="flex justify-end">

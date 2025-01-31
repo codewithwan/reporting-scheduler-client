@@ -10,5 +10,5 @@ export const toGMT7 = (date: Date): string => {
 
 export const toReadableGMT7 = (date: string): string => {
   const gmt7Date = new Date(new Date(date).getTime() + 7 * 60 * 60 * 1000);
-  return gmt7Date.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' });
+  return gmt7Date.toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
 };

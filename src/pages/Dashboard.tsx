@@ -11,7 +11,7 @@ import LoadingOverlay from "../components/LoadingOverlay";
 import FilterSection from "../components/FilterSection";
 import CreateButton from "../components/CreateButton";
 import CreateScheduleModal from "../components/CreateScheduleModal";
-import { toReadableGMT7 } from "../utils/dateUtils";
+import { toGMT7, toReadableGMT7 } from "../utils/dateUtils";
 import { Schedule } from "../models/Schedule";
 
 const Dashboard = () => {
@@ -58,7 +58,7 @@ const Dashboard = () => {
         const response = await fetchUserProfile();
         setUserData(response.data);
         setUserRole(response.data.role);
-        if (response.data.role !== 'engineer') {
+        if (response.data.role !== "engineer") {
           // Fetch additional user data if role is not engineer
           // ...fetch additional data logic...
         }
@@ -215,27 +215,63 @@ const Dashboard = () => {
     }
   };
 
-  const [events, setEvents] = useState<{ title: string; date: string; extendedProps: { color: string } }[]>([]);
+  const [events, setEvents] = useState<
+    {
+      title: string;
+      start: string | Date;
+      end?: string | Date;
+      extendedProps: { color: string };
+    }[]
+  >([]);
 
   useEffect(() => {
     const getSchedules = async () => {
       try {
         const response = await fetchSchedules();
-        const schedules: Schedule[] = response.data.map((schedule: Schedule) => ({
-          ...schedule,
-          executeAt: new Date(schedule.executeAt).toISOString(), // Ensure the date is in ISO format
-        }));
-        const calendarEvents = schedules.map((schedule) => ({
-          title: new Date(schedule.executeAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          date: schedule.executeAt,
-          extendedProps: { 
-            color: schedule.status === "ACCEPTED" ? "green" :
-                   schedule.status === "RESCHEDULED" ? "blue" :
-                   schedule.status === "PENDING" ? "yellow" :
-                   schedule.status === "REJECTED" ? "red" :
-                   "gray"
-          },
-        }));
+        const schedules: Schedule[] = response.data.map(
+          (schedule: Schedule) => ({
+            ...schedule,
+            startDate: toGMT7(new Date(schedule.startDate)),
+            endDate: schedule.endDate
+              ? toGMT7(new Date(schedule.endDate))
+              : null,
+          })
+        );
+
+        const calendarEvents = schedules.map((schedule) => {
+          const startDate = new Date(schedule.startDate + "Z"); // Tambahkan "Z" untuk memaksa UTC
+          const endDate = schedule.endDate
+            ? new Date(schedule.endDate + "Z")
+            : null;
+
+          return {
+            title: `${schedule.taskName} - ${startDate.toLocaleTimeString(
+              "en-US",
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jakarta",
+              }
+            )}`,
+
+            start: startDate.toISOString(),
+            end: endDate ? endDate.toISOString() : startDate.toISOString(),
+
+            extendedProps: {
+              color:
+                schedule.status === "ACCEPTED"
+                  ? "green"
+                  : schedule.status === "RESCHEDULED"
+                  ? "blue"
+                  : schedule.status === "PENDING"
+                  ? "yellow"
+                  : schedule.status === "REJECTED"
+                  ? "red"
+                  : "gray",
+            },
+          };
+        });
+
         setEvents(calendarEvents);
         setReports(schedules);
       } catch (error) {
@@ -252,7 +288,7 @@ const Dashboard = () => {
       {/* Main Grid */}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid grid-rows-[auto_1fr] gap-4">
         {/* Top Row */}
-        <div className="grid grid-cols-6 gap-4 sm:h-20 items-stretch">
+        <div className="grid grid-cols-6 gap-4 h-15 items-stretch">
           <FilterSection />
           <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>
@@ -336,9 +372,11 @@ const Dashboard = () => {
                         className={`font-semibold ${
                           eventInfo.event._def.extendedProps.color === "green"
                             ? "text-green-500"
-                            : eventInfo.event._def.extendedProps.color === "blue"
+                            : eventInfo.event._def.extendedProps.color ===
+                              "blue"
                             ? "text-blue-500"
-                            : eventInfo.event._def.extendedProps.color === "yellow"
+                            : eventInfo.event._def.extendedProps.color ===
+                              "yellow"
                             ? "text-yellow-500"
                             : eventInfo.event._def.extendedProps.color === "red"
                             ? "text-red-500"
@@ -365,30 +403,38 @@ const Dashboard = () => {
                   right: "next,dayGridDay,timeGridWeek,dayGridMonth",
                 }}
                 contentHeight="auto"
-                events={events}
-                // dateClick={handleDateClick}
-                eventContent={(eventInfo) => (
-                  <div className="flex items-center">
-                    {/* Titik biru di kiri */}
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
-                    {/* Teks event dengan warna bergantian */}
-                    <span
-                      className={`font-semibold ${
-                        eventInfo.event._def.extendedProps.color === "green"
-                          ? "text-green-500"
-                          : eventInfo.event._def.extendedProps.color === "blue"
-                          ? "text-blue-500"
-                          : eventInfo.event._def.extendedProps.color === "yellow"
-                          ? "text-yellow-500"
-                          : eventInfo.event._def.extendedProps.color === "red"
-                          ? "text-red-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {eventInfo.event.title}
-                    </span>
-                  </div>
-                )}
+                events={events.map((event) => ({
+                  title: event.title,
+                  start: event.start,
+                  end: event.end,
+                  extendedProps: {
+                    color: event.extendedProps.color,
+                  },
+                }))}
+                eventContent={(eventInfo) => {
+                  const { color } = eventInfo.event.extendedProps;
+
+                  return (
+                    <div className="flex items-center">
+                      {/* Nama event dengan highlight warna status */}
+                      <span
+                        className={`font-semibold px-1 rounded ${
+                          color === "green"
+                            ? "bg-green-300 text-green-700"
+                            : color === "blue"
+                            ? "bg-blue-300 text-blue-700"
+                            : color === "yellow"
+                            ? "bg-yellow-300 text-yellow-700"
+                            : color === "red"
+                            ? "bg-red-300 text-red-700"
+                            : "bg-gray-300 text-gray-700"
+                        }`}
+                      >
+                        {eventInfo.event.title}
+                      </span>
+                    </div>
+                  );
+                }}
               />
             </div>
           </div>
@@ -415,9 +461,15 @@ const Dashboard = () => {
                         </span>
                       </p>
                       <p className="flex">
-                        <span className="w-1/3 font-bold">DATE</span>
+                        <span className="w-1/3 font-bold">START DATE</span>
                         <span className="w-2/3 font-semibold">
-                          : {toReadableGMT7(report.executeAt)}
+                          : {toReadableGMT7(report.startDate)}
+                        </span>
+                      </p>
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">END DATE</span>
+                        <span className="w-2/3 font-semibold">
+                          : {toReadableGMT7(report.endDate)}
                         </span>
                       </p>
                       <p className="flex">

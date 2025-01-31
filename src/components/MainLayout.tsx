@@ -11,7 +11,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [userData, setUserData] = useState<{ name: string } | null>(null);
-
+  const role = localStorage.getItem("role") || "ENGINEER";
   const location = useLocation();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-100 font-poppins flex">
-      <Sidebar isDrawerOpen={isDrawerOpen} selectedMenu={location.pathname} />
+      <Sidebar isDrawerOpen={isDrawerOpen} selectedMenu={location.pathname} role={role} />
       <div className="flex-1 lg:ml-64">
         <Navbar
           toggleDrawer={() => setIsDrawerOpen(!isDrawerOpen)}

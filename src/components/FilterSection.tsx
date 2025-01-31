@@ -4,7 +4,7 @@ const FilterSection = () => {
   return (
     <div className="sm:col-span-5 col-span-4 flex sm:flex-wrap flex-nowrap items-stretch border sm:rounded-lg rounded-md shadow-md">
       {/* Filter Buttons */}
-      <span className="flex items-center justify-center sm:px-4 ps-3 bg-gray-50 text-gray-500 font-medium border-gray-300 sm:rounded-l-lg rounded-l-md">
+      <span className="flex items-center justify-center sm:px-4 ps-3 py-5 bg-gray-50 text-gray-500 font-medium border-gray-300 sm:rounded-l-lg rounded-l-md">
         <FaFilter />
       </span>
 
