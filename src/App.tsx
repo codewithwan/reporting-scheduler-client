@@ -8,6 +8,7 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingOverlay from "./components/LoadingOverlay";
 import Notification from "./components/Notification";
+import NotFound from "./pages/NotFound";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -21,7 +22,9 @@ const ProductList = lazy(() => import("./pages/ProductList"));
 function App() {
   const token = localStorage.getItem("token");
   const [notification, setNotification] = useState("");
-  const [notificationType, setNotificationType] = useState<"success" | "error">("error");
+  const [notificationType, setNotificationType] = useState<"success" | "error">(
+    "error"
+  );
 
   const showNotification = (message: string, type: "success" | "error") => {
     setNotification(message);
@@ -37,10 +40,13 @@ function App() {
       showNotification(customEvent.detail.message, customEvent.detail.type);
     };
 
-    window.addEventListener('showNotification', handleShowNotification as EventListener);
+    window.addEventListener(
+      "showNotification",
+      handleShowNotification as EventListener
+    );
 
     return () => {
-      window.removeEventListener('showNotification', handleShowNotification);
+      window.removeEventListener("showNotification", handleShowNotification);
     };
   }, []);
 
@@ -56,8 +62,14 @@ function App() {
         )}
         <Suspense fallback={<LoadingOverlay />}>
           <Routes>
-            <Route path="/login" element={<Login showNotification={showNotification} />} />
-            <Route path="/register" element={<Register showNotification={showNotification} />} />
+            <Route
+              path="/login"
+              element={<Login showNotification={showNotification} />}
+            />
+            <Route
+              path="/register"
+              element={<Register showNotification={showNotification} />}
+            />
             <Route
               path="/dashboard"
               element={
@@ -102,6 +114,7 @@ function App() {
               path="/"
               element={token ? <Navigate to="/dashboard" /> : <Landing />}
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </div>

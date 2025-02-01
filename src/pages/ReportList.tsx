@@ -227,72 +227,72 @@ const ReportList = () => {
                     </span>
                   </p>
                 </div>
-                <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
-                  {report.status === "PENDING" && (
-                    <>
-                      {userRole === "ENGINEER" && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(report.id)}
-                            className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleReschedule(report)}
-                            className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                          >
-                            Reschedule
-                          </button>
-                        </>
-                      )}
-                      {userRole === "ADMIN" && (
-                        <>
-                          <button
-                            onClick={() => handleReschedule(report)}
-                            className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                          >
-                            Reschedule
-                          </button>
-                          <button
-                            onClick={() => handleReject(report.id)}
-                            className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                    </>
-                  )}
-                  {report.status === "RESCHEDULED" && (
-                    <>
-                      {userRole === "ADMIN" && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(report.id)}
-                            className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleReject(report.id)}
-                            className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </>
-                  )}
-                  {report.status === "REJECTED" && userRole === "ENGINEER" && (
+                {report.status === "PENDING" && (
+                  <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
+                    {userRole === "ENGINEER" && (
+                      <>
+                        <button
+                          onClick={() => handleAccept(report.id)}
+                          className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleReschedule(report)}
+                          className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                        >
+                          Reschedule
+                        </button>
+                      </>
+                    )}
+                    {userRole === "ADMIN" && (
+                      <>
+                        <button
+                          onClick={() => handleReschedule(report)}
+                          className="w-3/6 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                        >
+                          Reschedule
+                        </button>
+                        <button
+                          onClick={() => handleReject(report.id)}
+                          className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {report.status === "RESCHEDULED" && (
+                  <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
+                    {userRole === "ADMIN" && (
+                      <>
+                        <button
+                          onClick={() => handleAccept(report.id)}
+                          className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleReject(report.id)}
+                          className="w-2/6 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {report.status === "REJECTED" && userRole === "ENGINEER" && (
+                  <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
                     <button
                       onClick={() => handleAccept(report.id)}
                       className="w-2/6 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
                     >
                       Accept
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

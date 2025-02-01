@@ -365,28 +365,30 @@ const Dashboard = () => {
                   }}
                   contentHeight="auto"
                   events={events}
-                  eventContent={(eventInfo) => (
-                    <div className="flex items-center">
-                      {/* Teks event dengan warna bergantian */}
-                      <span
-                        className={`font-semibold ${
-                          eventInfo.event._def.extendedProps.color === "green"
-                            ? "text-green-500"
-                            : eventInfo.event._def.extendedProps.color ===
-                              "blue"
-                            ? "text-blue-500"
-                            : eventInfo.event._def.extendedProps.color ===
-                              "yellow"
-                            ? "text-yellow-500"
-                            : eventInfo.event._def.extendedProps.color === "red"
-                            ? "text-red-500"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {eventInfo.event.title}
-                      </span>
-                    </div>
-                  )}
+                  eventContent={(eventInfo) => {
+                    const { color } = eventInfo.event.extendedProps;
+
+                    return (
+                      <div className="flex items-center">
+                        {/* Nama event dengan highlight warna status */}
+                        <span
+                          className={`font-semibold px-1 rounded ${
+                            color === "green"
+                              ? "bg-green-300 text-green-700"
+                              : color === "blue"
+                              ? "bg-blue-300 text-blue-700"
+                              : color === "yellow"
+                              ? "bg-yellow-300 text-yellow-700"
+                              : color === "red"
+                              ? "bg-red-300 text-red-700"
+                              : "bg-gray-300 text-gray-700"
+                          }`}
+                        >
+                          {eventInfo.event.title}
+                        </span>
+                      </div>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -440,11 +442,11 @@ const Dashboard = () => {
           </div>
           {/* Report Section */}
           <div className="bg-white shadow-md p-4 rounded-lg w-full">
-            <h2 className="text-lg font-bold mb-2">Reports</h2>
+            <h2 className="text-lg font-bold">Reports</h2>
 
             <div className="pb-10 flex flex-col h-full justify-between">
               {/* Wrapper with fixed height */}
-              <div className="space-y-5 pt-5">
+              <div className="space-y-2 pt-5">
                 {currentReports.map((report) => (
                   <div
                     key={report.id}
@@ -497,7 +499,7 @@ const Dashboard = () => {
               </div>
 
               {/* Pagination Controls */}
-              <div className="flex justify-between items-center mt-4">
+              <div className="flex justify-between items-center">
                 <button
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}

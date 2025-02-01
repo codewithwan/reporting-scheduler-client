@@ -200,7 +200,6 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
       }
 
       await createSchedule(scheduleData);
-      window.location.reload();
 
       setNotification({
         message: "Schedule created successfully!",
@@ -382,7 +381,7 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
               type="submit"
               className="px-4 py-2 bg-purple-600 text-white rounded"
             >
-              Reschedule
+              Create
             </button>
           </div>
         </form>
