@@ -215,7 +215,7 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
         type: "error",
       });
     } finally {
-      setIsLoading(false);
+      window.location.reload();
     }
   };
 

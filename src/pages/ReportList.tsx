@@ -192,15 +192,21 @@ const ReportList = () => {
                 <div className="text-sm text-gray-500">
                   <p className="flex">
                     <span className="w-1/3 font-bold">ENGINEER</span>
-                    <span className="w-2/3 font-semibold">: {report.engineerName}</span>
+                    <span className="w-2/3 font-semibold">
+                      : {report.engineerName}
+                    </span>
                   </p>
                   <p className="flex">
                     <span className="w-1/3 font-bold">START DATE</span>
-                    <span className="w-2/3 font-semibold">: {toReadableGMT7(report.startDate)}</span>
+                    <span className="w-2/3 font-semibold">
+                      : {toReadableGMT7(report.startDate)}
+                    </span>
                   </p>
                   <p className="flex">
                     <span className="w-1/3 font-bold">END DATE</span>
-                    <span className="w-2/3 font-semibold">: {toReadableGMT7(report.endDate)}</span>
+                    <span className="w-2/3 font-semibold">
+                      : {toReadableGMT7(report.endDate)}
+                    </span>
                   </p>
                   <p className="flex">
                     <span className="w-1/3 font-bold">STATUS</span>
@@ -292,11 +298,9 @@ const ReportList = () => {
           </div>
         </div>
       </div>
-      <CreateScheduleModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        report={selectedReport}
-      />
+      {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
+        <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      )}
     </MainLayout>
   );
 };

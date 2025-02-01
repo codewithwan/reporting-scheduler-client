@@ -528,7 +528,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
+        <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      )}
     </MainLayout>
   );
 };

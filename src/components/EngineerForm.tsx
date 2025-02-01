@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { register, updateUser } from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 interface Engineer {
   id?: string;
@@ -35,6 +36,7 @@ const EngineerForm = ({
     api?: string;
   }>({});
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (modalType === "update" && engineer) {
@@ -91,6 +93,7 @@ const EngineerForm = ({
         ...prev,
         api: error.response?.data?.message || "Failed to submit data",
       }));
+    } finally {
     }
   };
 
@@ -138,18 +141,26 @@ const EngineerForm = ({
               disabled={modalType === "update"}
             />
           </div>
-          <div className="mb-4">
+          <div className=" mb-4">
             <label className="block text-sm font-medium">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`w-full p-2 border rounded-md ${
-                errors.password ? "border-red-500" : ""
-              }`}
-              required={modalType === "create"}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className={`w-full p-2 border rounded-md ${
+                  errors.password ? "border-red-500" : ""
+                }`}
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <span
+                className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-xl"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
             )}
