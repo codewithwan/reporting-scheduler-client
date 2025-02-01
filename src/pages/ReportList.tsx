@@ -17,7 +17,6 @@ const ReportList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<Schedule | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -59,8 +58,7 @@ const ReportList = () => {
     }
   };
 
-  const handleReschedule = (report: Schedule) => {
-    setSelectedReport(report);
+  const handleReschedule = (_report: Schedule) => {
     setIsModalOpen(true);
   };
 

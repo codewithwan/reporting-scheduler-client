@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  fetchProvinces,
   fetchUsers,
   createSchedule,
   fetchUserProfile,
@@ -47,10 +46,6 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   >([]);
   const [] = useState("");
   const [] = useState(false);
-  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>(
-    []
-  );
-  const [cities] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -61,18 +56,6 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   const [, setUserRole] = useState("");
 
   useEffect(() => {
-    // Fetch provinces data
-    const getProvinces = async () => {
-      try {
-        const response = await fetchProvinces();
-        setProvinces(response.data);
-      } catch (error) {
-        console.error("Failed to fetch provinces:", error);
-      }
-    };
-
-    getProvinces();
-
     // Fetch customers data
     const getCustomers = async () => {
       try {
