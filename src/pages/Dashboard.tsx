@@ -441,7 +441,7 @@ const Dashboard = () => {
             </div>
           </div>
           {/* Report Section */}
-          <div className="bg-white shadow-md p-4 rounded-lg w-full">
+          <div className="bg-white shadow-md p-4 rounded-lg w-full max-h-[620px]">
             <h2 className="text-lg font-bold">Reports</h2>
 
             <div className="pb-10 flex flex-col h-full justify-between">

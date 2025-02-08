@@ -62,7 +62,7 @@ export const fetchUsers = () => api.get("/protected/users");
 
 export const updateUser = async (
   id: string,
-  user: { name: string; email: string; role: "ENGINEER" }
+  user: { name: string; email: string; role: string; }
 ) => {
   try {
     const response = await api.put(`/protected/users/${id}`, user);

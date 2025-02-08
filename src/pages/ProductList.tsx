@@ -9,22 +9,8 @@ import {
 } from "../services/api";
 import SearchBar from "../components/SearchBar";
 import { fetchCustomers } from "../services/api";
-
-interface Product {
-  id: string;
-  customerId: string;
-  serialNumber: string;
-  description: string;
-  brand: string;
-  model: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-}
+import { Product } from "../models/Product";
+import { Customer } from "../models/Customer";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -46,6 +32,27 @@ const ProductList = () => {
     brand: "",
     model: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [minHeight, setMinHeight] = useState("525px");
+
+  useEffect(() => {
+    const updateLayout = () => {
+      const screenHeight = window.innerHeight;
+      const availableHeight = screenHeight - 260;
+
+      const calculatedItems = Math.floor(availableHeight / 75);
+      setItemsPerPage(calculatedItems > 0 ? calculatedItems : 1);
+
+      const calculatedMinHeight = calculatedItems * 75;
+      setMinHeight(`${calculatedMinHeight}px`);
+    };
+
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+
+    return () => window.removeEventListener("resize", updateLayout);
+  }, []);
 
   const validateForm = () => {
     let newErrors: { [key: string]: string } = {};
@@ -151,6 +158,14 @@ const ProductList = () => {
     }
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
   return (
     <MainLayout>
       {isLoading && <LoadingOverlay />}
@@ -160,18 +175,18 @@ const ProductList = () => {
             onSearch={(searchTerm) => {
               const lowercasedSearchTerm = searchTerm.toLowerCase();
               setFilteredProducts(
-                products.filter(
-                  (p) =>
-                    p.customerId.toLowerCase().includes(lowercasedSearchTerm) ||
-                    p.serialNumber
-                      .toLowerCase()
-                      .includes(lowercasedSearchTerm) ||
-                    p.description
-                      .toLowerCase()
-                      .includes(lowercasedSearchTerm) ||
+                products.filter((p) => {
+                  const customerName =
+                    customers.find((customer) => customer.id === p.customerId)?.name || "Unknown";
+                
+                  return (
+                    customerName.toLowerCase().includes(lowercasedSearchTerm) ||
+                    p.serialNumber.toLowerCase().includes(lowercasedSearchTerm) ||
+                    p.description.toLowerCase().includes(lowercasedSearchTerm) ||
                     p.brand.toLowerCase().includes(lowercasedSearchTerm) ||
                     p.model.toLowerCase().includes(lowercasedSearchTerm)
-                )
+                  );
+                })                
               );
             }}
           />
@@ -183,68 +198,117 @@ const ProductList = () => {
           </button>
         </div>
 
-        <div className="md:bg-white bg-none md:shadow-md shadow-none rounded-md overflow-hidden">
-          <table className="min-w-full table-auto border-collapse border border-gray-200 hidden md:table">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  CUSTOMER
-                </th>
-                <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  SERIAL NUMBER
-                </th>
-                <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  BRAND
-                </th>
-                <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  MODEL
-                </th>
-                <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b text-center">
-                  ACTIONS
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-100">
-                  <td className="w-1/5 px-6 py-4 text-sm font-medium text-gray-700 border-b">
-                    {customers.find(
-                      (customer) => customer.id === product.customerId
-                    )?.name || "Unknown"}
-                  </td>
-                  <td className="w-1/5 px-6 py-4 text-sm text-gray-700 border-b">
-                    {product.serialNumber}
-                  </td>
-                  <td className="w-1/5 px-6 py-4 text-sm text-gray-700 border-b">
-                    {product.brand}
-                  </td>
-                  <td className="w-1/5 px-6 py-4 text-sm text-gray-700 border-b">
-                    {product.model}
-                  </td>
-                  <td className="w-1/5 py-4 text-center border-b space-x-2">
-                    <button
-                      onClick={() => handleDetail(product)}
-                      className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                    >
-                      Detail
-                    </button>
-                    <button
-                      onClick={() => handleOpenModal(product)}
-                      className="px-3 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product)}
-                      className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                    >
-                      Delete
-                    </button>
-                  </td>
+        <div style={{ minHeight }} className="hidden sm:block">
+          <div className="md:bg-white bg-none md:shadow-md shadow-none rounded-md overflow-hidden">
+            <table className="min-w-full table-auto border-collapse border border-gray-200 hidden md:table">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    CUSTOMER
+                  </th>
+                  <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    SERIAL NUMBER
+                  </th>
+                  <th className="w-1/5 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    BRAND
+                  </th>
+                  <th className="w-1/6 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    MODEL
+                  </th>
+                  <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b text-center">
+                    ACTIONS
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-100">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-700 border-b">
+                      {customers.find(
+                        (customer) => customer.id === product.customerId
+                      )?.name || "Unknown"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">
+                      {product.serialNumber}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">
+                      {product.brand}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">
+                      {product.model}
+                    </td>
+                    <td className="py-4 text-center border-b space-x-2">
+                      <button
+                        onClick={() => handleDetail(product)}
+                        className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                      >
+                        Detail
+                      </button>
+                      <button
+                        onClick={() => handleOpenModal(product)}
+                        className="px-3 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product)}
+                        className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="hidden sm:flex justify-center items-center mt-3 min-h-[40px]">
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
+                }`}
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === page
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col space-y-4 md:hidden">

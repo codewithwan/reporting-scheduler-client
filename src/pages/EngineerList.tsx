@@ -6,13 +6,7 @@ import CreateButton from "../components/CreateButton";
 import SearchBar from "../components/SearchBar";
 import EngineerForm from "../components/EngineerForm";
 import { updateUser, deleteUser } from "../services/api";
-
-interface Engineer {
-  id?: string;
-  name: string;
-  email: string;
-  role: "ENGINEER";
-}
+import { Engineer } from "../models/Engineer";
 
 const EngineerList = () => {
   const [selectedEngineer, setSelectedEngineer] = useState<Engineer | null>(
@@ -27,6 +21,28 @@ const EngineerList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [modalType, setModalType] = useState<"create" | "update">("create");
   const [userRole, setUserRole] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [minHeight, setMinHeight] = useState("525px");
+
+  useEffect(() => {
+    const updateLayout = () => {
+      const screenHeight = window.innerHeight;
+      const availableHeight =
+        screenHeight - (260);
+
+      const calculatedItems = Math.floor(availableHeight / 75);
+      setItemsPerPage(calculatedItems > 0 ? calculatedItems : 1);
+
+      const calculatedMinHeight = calculatedItems * 75;
+      setMinHeight(`${calculatedMinHeight}px`);
+    };
+
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+
+    return () => window.removeEventListener("resize", updateLayout);
+  }, []);
 
   useEffect(() => {
     refreshData();
@@ -107,6 +123,14 @@ const EngineerList = () => {
     setIsDeleteOpen(true);
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEngineers = filteredEngineers.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredEngineers.length / itemsPerPage);
+
   return (
     <MainLayout>
       {isLoading && <LoadingOverlay />}
@@ -120,60 +144,106 @@ const EngineerList = () => {
         </div>
 
         {/* engineer List Table */}
-        <div className="md:bg-white bg-none md:shadow-md shadow-none rounded-md overflow-hidden">
-          <table className="min-w-full table-auto border-collapse border border-gray-200 hidden md:table">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  NAME
-                </th>
-                <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  EMAIL
-                </th>
-                <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
-                  ADDRESS
-                </th>
-                <th className="w-1/4 px-6 py-3 text-center text-xs font-large text-gray-500 uppercase border-b text-center">
-                  ACTION
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEngineers.map((engineer) => (
-                <tr key={engineer.id} className="hover:bg-gray-100">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-700 border-b">
-                    {engineer.name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">
-                    {engineer.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">
-                    Jl. jalan ke pasar pagi
-                  </td>
-                  <td className="px-6 py-4 text-center border-b space-x-2">
-                    {/* <button
-                      onClick={() => handleDetail(engineer)}
-                      className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                    >
-                      Detail
-                    </button> */}
-                    <button
-                      onClick={() => openModal("update", engineer)}
-                      className="px-3 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(engineer)}
-                      className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                    >
-                      Delete
-                    </button>
-                  </td>
+        <div
+          style={{ minHeight }}
+          className="hidden sm:block"
+        >
+          <div className="md:bg-white bg-none md:shadow-md shadow-none rounded-md overflow-hidden">
+            <table className="min-w-full table-auto border-collapse border border-gray-200 hidden md:table">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    NAME
+                  </th>
+                  <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    EMAIL
+                  </th>
+                  <th className="w-1/4 px-6 py-3 text-left text-xs font-large text-gray-500 uppercase border-b">
+                    ADDRESS
+                  </th>
+                  <th className="w-1/4 px-6 py-3 text-center text-xs font-large text-gray-500 uppercase border-b text-center">
+                    ACTION
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentEngineers.map((engineer) => (
+                  <tr key={engineer.id} className="hover:bg-gray-100">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-700 border-b">
+                      {engineer.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">
+                      {engineer.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">
+                      Jl. jalan ke pasar pagi
+                    </td>
+                    <td className="px-6 py-4 text-center border-b space-x-2">
+                      <button
+                        onClick={() => openModal("update", engineer)}
+                        className="px-3 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                      >
+                        Update
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(engineer)}
+                        className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="hidden sm:flex justify-center items-center mt-3 min-h-[40px]">
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
+                }`}
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === page
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Responsive Version */}

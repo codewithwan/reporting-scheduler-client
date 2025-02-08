@@ -1,13 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { register, updateUser } from "../services/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
-interface Engineer {
-  id?: string;
-  name: string;
-  email: string;
-  role: "ENGINEER";
-}
+import { Engineer } from "../models/Engineer";
+import { useNavigate } from "react-router-dom";
 
 interface EngineerFormProps {
   isOpen: boolean;
@@ -23,77 +18,68 @@ const EngineerForm = ({
   modalType,
   engineer,
 }: EngineerFormProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const initialState = useMemo(
+    () => ({
+      name: engineer?.name || "",
+      email: engineer?.email || "",
+      password: "",
+    }),
+    [engineer]
+  );
 
+  const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
     password?: string;
     api?: string;
   }>({});
-  const modalRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (modalType === "update" && engineer) {
-      setFormData({
-        name: engineer.name,
-        email: engineer.email,
-        password: "",
-      });
-    } else {
-      setFormData({ name: "", email: "", password: "" });
-    }
+    setFormData(initialState);
     setErrors({});
-  }, [modalType, engineer]);
+  }, [initialState]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-    if (e.target.name === "password" && e.target.value.length < 8) {
-      setErrors((prev) => ({
-        ...prev,
-        password: "Password must be at least 8 characters",
-      }));
-    } else {
-      setErrors((prev) => ({ ...prev, password: undefined }));
-    }
+  const validateForm = () => {
+    let newErrors: typeof errors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    if (modalType === "create" && formData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
-    setErrors({}); // Reset errors
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-    if (modalType === "create" && formData.password.length < 8) {
-      setErrors((prev) => ({
-        ...prev,
-        password: "Password must be at least 8 characters",
-      }));
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
       if (modalType === "create") {
         await register(formData.email, formData.password, formData.name);
       } else if (modalType === "update" && engineer?.id) {
-        await updateUser(engineer.id, {
+        const payload: any = {
           name: formData.name,
           email: formData.email,
           role: "ENGINEER",
-        });
+        };
+        await updateUser(engineer.id, payload);
       }
 
+      navigate(0);
       onClose();
     } catch (error: any) {
-      console.error("Error submitting engineer data:", error);
       setErrors((prev) => ({
         ...prev,
         api: error.response?.data?.message || "Failed to submit data",
       }));
-    } finally {
     }
   };
 
@@ -128,6 +114,9 @@ const EngineerForm = ({
               className="w-full p-2 border rounded-md"
               required
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium">Email</label>
@@ -140,8 +129,11 @@ const EngineerForm = ({
               required
               disabled={modalType === "update"}
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
-          <div className=" mb-4">
+          <div className={`mb-4  ${modalType == "update" ? "hidden" : ""}`}>
             <label className="block text-sm font-medium">Password</label>
             <div className="relative">
               <input
@@ -152,7 +144,8 @@ const EngineerForm = ({
                 }`}
                 value={formData.password}
                 onChange={handleChange}
-                required
+                required={modalType === "create"}
+                disabled={modalType === "update"}
               />
               <span
                 className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-xl"
