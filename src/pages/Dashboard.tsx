@@ -288,7 +288,7 @@ const Dashboard = () => {
       {/* Main Grid */}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid grid-rows-[auto_1fr] gap-4">
         {/* Top Row */}
-        <div className="grid grid-cols-6 gap-4 h-15 items-stretch">
+        <div className={`grid ${userRole === "ENGINEER" ? "grid-cols-1" : "grid-cols-6"} gap-4 h-15 items-stretch`}>
           <FilterSection />
           <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>

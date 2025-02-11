@@ -5,8 +5,8 @@ export interface Schedule {
   endDate: string;
   engineer_id: string;
   admin_id: string;
-  customer_id: string;
-  product_id: string; 
+  customerId: string;
+  productId: string; 
   location: string | null;
   activity: string | null;
   adminName: string;

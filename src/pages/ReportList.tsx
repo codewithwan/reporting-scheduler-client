@@ -113,7 +113,7 @@ const ReportList = () => {
     <MainLayout>
       {isLoading && <LoadingOverlay />}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid gap-4">
-        <div className="grid grid-cols-6 gap-4 h-15 items-stretch">
+        <div className={`grid ${userRole === "ENGINEER" ? "grid-cols-1" : "grid-cols-6"} gap-4 h-15 items-stretch`}>
           <FilterSection />
           <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>
@@ -333,50 +333,52 @@ const ReportList = () => {
             </div>
           </div>
         </div>
-      </div>
-      {/* Pagination Controls */}
-      <div className="hidden sm:flex justify-center items-center mt-3 min-h-[40px]">
-        {totalPages > 1 && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
-                currentPage === 1
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-gray-300"
-              }`}
-            >
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        {/* Pagination Controls */}
+        <div className="hidden sm:flex justify-center items-center mt-3 min-h-[40px]">
+          {totalPages > 1 && (
+            <div className="flex gap-2">
               <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-4 py-2 rounded-md ${
-                  currentPage === page
-                    ? "bg-purple-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
                 }`}
               >
-                {page}
+                Prev
               </button>
-            ))}
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-gray-300"
-              }`}
-            >
-              Next
-            </button>
-          </div>
-        )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === page
+                        ? "bg-purple-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 bg-gray-200 text-gray-700 rounded-md ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-300"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
         <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />

@@ -3,6 +3,7 @@ import { AiFillProduct } from "react-icons/ai";
 import { FaHome, FaCalendarAlt } from "react-icons/fa";
 import { IoIosPerson } from "react-icons/io";
 import { MdEngineering } from "react-icons/md";
+import { RiTodoFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
 
 const menuItems = [
@@ -11,6 +12,12 @@ const menuItems = [
     path: "/dashboard",
     icon: <FaHome />,
     roles: ["ENGINEER", "ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "ToDo",
+    path: "/todo",
+    icon: <RiTodoFill />,
+    roles: ["ENGINEER"],
   },
   {
     name: "Report List",

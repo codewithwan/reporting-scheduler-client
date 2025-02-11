@@ -121,11 +121,11 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
       setStartDate(new Date(report.startDate).toISOString().split("T")[0]);
       setEndDate(new Date(report.endDate).toISOString().split("T")[0]);
       setEngineer(report.engineerName);
-      setCustomer(report.customer_id);
-      setProduct(report.product_id);
+      setCustomer(report.customerId);
+      setProduct(report.productId);
       setCategory(report.taskName);
       setProvince(report.location?.split(", ")[1] || "");
-      setCity(report.location?.split(", ")[0] || "");
+      setCity("Jakarta");
       setDescription(report.activity || "");
     }
   }, [report]);
@@ -161,7 +161,7 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
       }
 
       const customerId = report
-        ? report.customer_id
+        ? report.customerId
         : customers.find((eng) => eng.name === customer)?.id;
 
       if (!customerId) {
@@ -169,7 +169,7 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
       }
 
       const productId = report
-        ? report.product_id
+        ? report.productId
         : products.find((eng) => eng.brand === product)?.id;
 
       if (!productId) {

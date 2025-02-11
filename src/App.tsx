@@ -14,6 +14,8 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ToDo = lazy(() => import("./pages/ToDo"));
+const Report = lazy(() => import("./pages/Report"));
 const ReportList = lazy(() => import("./pages/ReportList"));
 const EngineerList = lazy(() => import("./pages/EngineerList"));
 const CustomerList = lazy(() => import("./pages/CustomerList"));
@@ -75,6 +77,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/todo"
+              element={
+                <ProtectedRoute>
+                  <ToDo />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/todo/report"
+              element={
+                <ProtectedRoute>
+                  <Report />
                 </ProtectedRoute>
               }
             />
