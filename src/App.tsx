@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+import Signature from "./pages/CreateSignature";
 const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ToDo = lazy(() => import("./pages/ToDo"));
@@ -71,6 +72,14 @@ function App() {
             <Route
               path="/register"
               element={<Register showNotification={showNotification} />}
+            />
+            <Route
+              path="/signature"
+              element={
+                <ProtectedRoute>
+                  <Signature />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/dashboard"

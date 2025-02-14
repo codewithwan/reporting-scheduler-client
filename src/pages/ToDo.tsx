@@ -10,7 +10,6 @@ import {
 } from "../services/api";
 import { toGMT7 } from "../utils/dateUtils";
 import SearchBar from "../components/SearchBar";
-import { Product } from "../models/Product";
 import { Customer } from "../models/Customer";
 
 const Todo = () => {
@@ -22,7 +21,6 @@ const Todo = () => {
   const navigate = useNavigate();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Schedule | null>(null);
-  const [customerName, setCustomerName] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -72,7 +70,7 @@ const Todo = () => {
   };
 
   const handleReport = (task: Schedule) => {
-    navigate("/todo/report", { state: { task } }); // Tidak perlu pakai setCurrentTask
+    navigate("/todo/report", { state: { task } });
   };
 
   return (

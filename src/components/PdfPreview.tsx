@@ -5,23 +5,31 @@ interface PdfPreviewProps {
   data: any;
   signature: any;
   signatureFile: File | null;
+  profileSignature: any;
 }
 
-const PdfPreview: React.FC<PdfPreviewProps> = ({ data, signature, signatureFile }) => {
+const PdfPreview: React.FC<PdfPreviewProps> = ({
+  data,
+  signature,
+  signatureFile,
+  profileSignature
+}) => {
   const [pdfUrl, setPdfUrl] = useState<string>("");
 
   useEffect(() => {
     const generatePdf = async () => {
       if (!data) return;
-      console.log("Generating PDF with data:", data);
-      if (signatureFile) console.log("Using Signature File:", signatureFile.name);
 
-      const pdfBlob = await ModifyPdf(data, signature, signatureFile);
-      setPdfUrl(URL.createObjectURL(pdfBlob));
+      const pdfBlob = await ModifyPdf(data, signature, signatureFile, profileSignature);
+      if (pdfBlob) {
+        setPdfUrl(URL.createObjectURL(pdfBlob));
+      } else {
+        console.error("Failed to generate PDF: Unsupported signature format.");
+      }
     };
 
     generatePdf();
-  }, [data, signatureFile]); // 🔹 Perbaikan: Tambahkan signatureFile agar PDF diperbarui
+  }, [data, signatureFile]);
 
   return (
     <div className="preview-container">

@@ -62,7 +62,7 @@ export const fetchUsers = () => api.get("/protected/users");
 
 export const updateUser = async (
   id: string,
-  user: { name: string; email: string; role: string; }
+  user: { name: string; email: string; role: string; signature: string }
 ) => {
   try {
     const response = await api.put(`/protected/users/${id}`, user);
@@ -79,6 +79,19 @@ export const deleteUser = async (id: string) => {
     return response.data;
   } catch (error) {
     console.error(`Error deleting user ${id}:`, error);
+    throw error;
+  }
+};
+
+// Signature Services
+export const saveSignature = async (signatureData: string) => {
+  try {
+    const response = await api.put("/users/signature", {
+      signature: signatureData,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error saving signature:", error);
     throw error;
   }
 };

@@ -4,7 +4,7 @@ import SignatureCanvas from "react-signature-canvas";
 import MainLayout from "../components/MainLayout";
 import { useLocation } from "react-router-dom";
 import { Schedule } from "../models/Schedule";
-import { getCustomerById, getProductById } from "../services/api";
+import { getCustomerById, getProductById, fetchUserProfile } from "../services/api";
 import PdfPreview from "../components/PdfPreview";
 
 const Report: React.FC = () => {
@@ -15,6 +15,7 @@ const Report: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 500 });
   const [reportData, setReportData] = useState({
     companyName: "",
@@ -24,10 +25,11 @@ const Report: React.FC = () => {
     brand: "",
     model: "",
     serialNumber: "",
-    problem: "",
+    activity: "",
     category: "",
     engineer: "",
     startDate: "",
+    endDate: "",
     time: "",
   });
   const location = useLocation();
@@ -40,9 +42,11 @@ const Report: React.FC = () => {
     Brand: "brand",
     Model: "model",
     "Serial Number": "serialNumber",
-    Problem: "problem",
+    Activity: "activity",
     Category: "category",
     "Engineer Name": "engineer",
+    "Work Start Date": "startDate",
+    "Work End Date": "endDate",
   };
 
   useEffect(() => {
@@ -59,11 +63,18 @@ const Report: React.FC = () => {
             brand: product.brand || "",
             model: product.model || "",
             serialNumber: product.serialNumber || "",
-            problem: task.activity || "",
+            activity: task.activity || "",
             category: task.taskName || "",
             engineer: task.engineerName || "",
             startDate: task.startDate
               ? new Date(task.startDate).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "",
+            endDate: task.endDate
+              ? new Date(task.endDate).toLocaleDateString("id-ID", {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",
@@ -118,6 +129,19 @@ const Report: React.FC = () => {
     window.addEventListener("resize", updateSize);
 
     return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  useEffect(() => {
+    const fetchUserProfiles = async () => {
+      try {
+        const response = await fetchUserProfile();
+        setUserProfile(response.data); // Simpan data user
+      } catch (error) {
+        console.error("Gagal mengambil profil pengguna:", error);
+      }
+    };
+
+    fetchUserProfiles();
   }, []);
 
   const saveSignature = () => {
@@ -295,7 +319,7 @@ const Report: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-6">
-                  {["Problem", "Category", "Engineer Name"].map(
+                  {["Activity", "Category", "Engineer Name"].map(
                     (label, index) => (
                       <div key={index} className="space-y-2">
                         <label className="block text-sm font-semibold">
@@ -372,24 +396,27 @@ const Report: React.FC = () => {
                 <div className="space-y-6">
                   <div className="space-y-6">
                     <div className="flex sm:space-x-3 space-y-3 sm:space-y-0 flex flex-col sm:flex-row">
-                      <div className="space-y-2 sm:w-1/2">
-                        <label className="block text-sm font-semibold">
-                          Work Start Date
-                        </label>
-                        <input
-                          type="date"
-                          className="w-full p-3 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                      <div className="space-y-2 sm:w-1/2">
-                        <label className="block text-sm font-semibold">
-                          Work End Date
-                        </label>
-                        <input
-                          type="date"
-                          className="w-full p-3 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
+                      {["Work Start Date", "Work End Date"].map(
+                        (label, index) => (
+                          <div key={index} className="space-y-2 sm:w-1/2">
+                            <label className="block text-sm font-semibold">
+                              {label}
+                            </label>
+                            <input
+                              type="text"
+                              value={
+                                reportData[
+                                  reportFields[
+                                    label as keyof typeof reportFields
+                                  ]
+                                ] || ""
+                              }
+                              readOnly
+                              className="w-full p-3 border bg-gray-200 rounded-lg focus:outline-none"
+                            />
+                          </div>
+                        )
+                      )}
                     </div>
 
                     <div className="mb-4">
@@ -453,13 +480,15 @@ const Report: React.FC = () => {
                     </div>
                     <div className="space-y-4">
                       <label className="block text-sm font-semibold">
-                        Tanda Tangan
+                        Tanda Tangan Pelanggan
                       </label>
                       <SignatureCanvas
                         ref={sigCanvas}
                         penColor="black"
+                        minWidth={2}
+                        maxWidth={4}
                         canvasProps={{
-                          width: canvasSize.width, // Gunakan ukuran yang responsif
+                          width: canvasSize.width,
                           height: canvasSize.height,
                           className: "border w-full rounded-lg bg-white",
                         }}
@@ -493,7 +522,7 @@ const Report: React.FC = () => {
                     {/* Upload File Tanda Tangan */}
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold">
-                        Upload Tanda Tangan
+                        Upload Tanda Tangan Pelanggan
                       </label>
                       <input
                         type="file"
@@ -571,6 +600,7 @@ const Report: React.FC = () => {
                     data={reportData}
                     signature={signature}
                     signatureFile={signatureFile}
+                    profileSignature={userProfile?.signature || null}
                   />
                 </div>
                 <div className="absolute top-12 right-10">

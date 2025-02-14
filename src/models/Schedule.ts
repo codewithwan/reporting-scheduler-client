@@ -11,7 +11,7 @@ export interface Schedule {
   activity: string | null;
   adminName: string;
   engineerName: string;
-  status?: "ACCEPTED" | "REJECTED" | "RESCHEDULED" | "PENDING" | "CANCELED" | "ONGOING" | "COMPLETED";
+  status: "ACCEPTED" | "REJECTED" | "RESCHEDULED" | "PENDING" | "CANCELED" | "ONGOING" | "COMPLETED";
   created_at: string;
   updated_at: string;
 }

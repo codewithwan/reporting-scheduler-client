@@ -13,6 +13,7 @@ import CreateScheduleModal from "../components/CreateScheduleModal";
 import { Schedule } from "../models/Schedule";
 import { toGMT7, toReadableGMT7 } from "../utils/dateUtils";
 import { Engineer } from "../models/Engineer";
+import RescheduleModal from "../components/RescheduleModal";
 
 const ReportList = () => {
   const [reports, setReports] = useState<Schedule[]>([]);
@@ -20,7 +21,8 @@ const ReportList = () => {
   const [engineers, setEngineers] = useState<Engineer[]>([]);
   const [filteredEngineers, setFilteredEngineers] = useState<Engineer[]>([]);
   const [userRole, setUserRole] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openModal, setOpenModal] = useState<"create" | "update" | null>(null);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Schedule | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -53,6 +55,24 @@ const ReportList = () => {
           startDate: toGMT7(new Date(schedule.startDate)),
           endDate: toGMT7(new Date(schedule.endDate)),
         }));
+
+        // Urutan prioritas status
+        const statusPriority = [
+          "PENDING",
+          "ONGOING",
+          "RESCHEDULED",
+          "ACCEPTED",
+          "COMPLETED",
+          "CANCELED",
+          "REJECTED",
+        ];
+
+        // Sorting berdasarkan status
+        schedules.sort(
+          (a, b) =>
+            statusPriority.indexOf(a.status) - statusPriority.indexOf(b.status)
+        );
+
         setReports(schedules);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
@@ -86,7 +106,7 @@ const ReportList = () => {
 
   const handleReschedule = (report: Schedule) => {
     setSelectedReport(report);
-    setIsModalOpen(true);
+    setOpenModal("update");
   };
 
   const handleReject = async (id: string) => {
@@ -106,16 +126,20 @@ const ReportList = () => {
 
   const totalPages = Math.ceil(reports.length / itemsPerPage);
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
+  const handleOpenModal = (type: "create" | "update") => setOpenModal(type);
+  const handleCloseModal = () => setOpenModal(null);
 
   return (
     <MainLayout>
       {isLoading && <LoadingOverlay />}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid gap-4">
-        <div className={`grid ${userRole === "ENGINEER" ? "grid-cols-1" : "grid-cols-6"} gap-4 h-15 items-stretch`}>
+        <div
+          className={`grid ${
+            userRole === "ENGINEER" ? "grid-cols-1" : "grid-cols-6"
+          } gap-4 h-15 items-stretch`}
+        >
           <FilterSection />
-          <CreateButton userRole={userRole} onClick={handleOpenModal} />
+          <CreateButton userRole={userRole} onClick={() => handleOpenModal("create")} />
         </div>
 
         <div style={{ minHeight }}>
@@ -381,8 +405,9 @@ const ReportList = () => {
         </div>
       </div>
       {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
-        <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
+        <CreateScheduleModal isOpen={openModal === "create"} onClose={handleCloseModal} />
       )}
+      <RescheduleModal isOpen={openModal === "update"} report={selectedReport} onClose={handleCloseModal} userRole={userRole} />
     </MainLayout>
   );
 };

@@ -9,9 +9,7 @@ import { updateUser, deleteUser } from "../services/api";
 import { Engineer } from "../models/Engineer";
 
 const EngineerList = () => {
-  const [selectedEngineer, setSelectedEngineer] = useState<Engineer | null>(
-    null
-  );
+  const [selectedEngineer, setSelectedEngineer] = useState<Engineer | null>(null);
   const [engineers, setEngineers] = useState<Engineer[]>([]);
   const [filteredEngineers, setFilteredEngineers] = useState<Engineer[]>([]);
   // const [isDetailOpen, setIsDetailOpen] = useState(false);

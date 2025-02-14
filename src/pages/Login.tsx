@@ -32,6 +32,7 @@ const Login: React.FC<LoginProps> = ({ showNotification }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
     if (!validateEmail(email)) {
       showNotification("Invalid email format.", "error");
       return;
@@ -48,14 +49,21 @@ const Login: React.FC<LoginProps> = ({ showNotification }) => {
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
 
-        // Fetch user profile to get role
+        // Fetch user profile
         const profileResponse = await fetchUserProfile();
-        const userRole = profileResponse.data.role;
-        localStorage.setItem("role", userRole); // Simpan role ke localStorage
-        console.log("User role:", userRole);
+        const user = profileResponse.data;
+
+        // Simpan role ke localStorage
+        localStorage.setItem("role", user.role);
 
         showNotification("Login successful!", "success");
-        navigate("/dashboard");
+
+        // Cek apakah user memiliki signature
+        if (user.signature || user.role === "ADMIN" || user.role === "SUPERADMIN") {
+          navigate("/dashboard");
+        } else {
+          navigate("/signature");
+        }
       } else {
         showNotification(
           "Invalid email or password. Please try again.",
