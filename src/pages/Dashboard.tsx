@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { fetchUserProfile } from "../services/api";
-import { FaFilter, FaRedo, FaChevronDown } from "react-icons/fa";
+import { fetchUserProfile, fetchSchedules } from "../services/api";
+
 import { UserData } from "../models/UserData";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -8,17 +8,35 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import MainLayout from "../components/MainLayout";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import LoadingOverlay from "../components/LoadingOverlay";
+import FilterSection from "../components/FilterSection";
+import CreateButton from "../components/CreateButton";
+import CreateScheduleModal from "../components/CreateScheduleModal";
+import { toGMT7, toReadableGMT7 } from "../utils/dateUtils";
+import { Schedule } from "../models/Schedule";
 
 const Dashboard = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [, setUserData] = useState<UserData | null>(null);
+  const [, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [, setIsDrawerOpen] = useState(false);
   const calendarRef = useRef<FullCalendar | null>(null);
   const [todayDate, setTodayDate] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   const months: string[] = [
     "January",
@@ -35,13 +53,21 @@ const Dashboard = () => {
     "December",
   ];
 
+
   useEffect(() => {
     const getUserData = async () => {
       try {
         const response = await fetchUserProfile();
         setUserData(response.data);
+        setUserRole(response.data.role);
+        if (response.data.role !== "engineer") {
+          // Fetch additional user data if role is not engineer
+          // ...fetch additional data logic...
+        }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -111,43 +137,7 @@ const Dashboard = () => {
     };
   }, []);
 
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      name: "Server Maintenance",
-      engineer: "John Doe",
-      date: "2025-01-22",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      name: "Network Input",
-      engineer: "Jane Mith",
-      date: "2025-01-23",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Processing",
-    },
-    {
-      id: 5,
-      name: "Network Upgrade",
-      engineer: "Jane Smith",
-      date: "2025-01-23",
-      status: "Pending",
-    },
-  ]);
+  const [reports, setReports] = useState<Schedule[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const maxItemsPerPage = 3;
@@ -207,6 +197,7 @@ const Dashboard = () => {
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
+
   };
 
   const handleNextPage = () => {
@@ -227,57 +218,82 @@ const Dashboard = () => {
     }
   };
 
-  const events = [
-    { title: "09:47", date: "2025-01-20", extendedProps: { color: "red" } },
-    { title: "20:17", date: "2025-01-20", extendedProps: { color: "green" } },
-  ];
+  const [events, setEvents] = useState<
+    {
+      title: string;
+      start: string | Date;
+      end?: string | Date;
+      extendedProps: { color: string };
+    }[]
+  >([]);
+
+  useEffect(() => {
+    const getSchedules = async () => {
+      try {
+        const response = await fetchSchedules();
+        const schedules: Schedule[] = response.data.map(
+          (schedule: Schedule) => ({
+            ...schedule,
+            startDate: toGMT7(new Date(schedule.startDate)),
+            endDate: schedule.endDate
+              ? toGMT7(new Date(schedule.endDate))
+              : null,
+          })
+        );
+
+        const calendarEvents = schedules.map((schedule) => {
+          const startDate = new Date(schedule.startDate + "Z"); // Tambahkan "Z" untuk memaksa UTC
+          const endDate = schedule.endDate
+            ? new Date(schedule.endDate + "Z")
+            : null;
+
+          return {
+            title: `${schedule.taskName} - ${startDate.toLocaleTimeString(
+              "en-US",
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Jakarta",
+              }
+            )}`,
+
+            start: startDate.toISOString(),
+            end: endDate ? endDate.toISOString() : startDate.toISOString(),
+
+            extendedProps: {
+              color:
+                schedule.status === "ACCEPTED"
+                  ? "green"
+                  : schedule.status === "RESCHEDULED"
+                  ? "blue"
+                  : schedule.status === "PENDING"
+                  ? "yellow"
+                  : schedule.status === "REJECTED"
+                  ? "red"
+                  : "gray",
+            },
+          };
+        });
+
+        setEvents(calendarEvents);
+        setReports(schedules);
+      } catch (error) {
+        console.error("Failed to fetch schedules:", error);
+      }
+    };
+
+    getSchedules();
+  }, []);
 
   return (
     <MainLayout>
+      {isLoading && <LoadingOverlay />}
       {/* Main Grid */}
       <div className="pt-20 px-4 sm:px-6 lg:px-8 grid grid-rows-[auto_1fr] gap-4">
         {/* Top Row */}
-        <div className="grid grid-cols-6 gap-4 sm:h-20 items-stretch">
-          {/* Filter Section */}
-          <div className="sm:col-span-5 col-span-4 flex sm:flex-wrap flex-nowrap items-stretch border sm:rounded-lg rounded-md shadow-md">
-            {/* Filter Buttons */}
-            <span className="flex items-center justify-center sm:px-4 ps-3 bg-gray-50 text-gray-500 font-medium border-gray-300 sm:rounded-l-lg rounded-l-md">
-              <FaFilter />
-            </span>
-
-            <span className="flex items-center justify-center sm:px-4 ps-1 pe-3 bg-gray-50 text-gray-700 font-medium sm:text-base text-sm sm:border-l border-gray-300">
-              Filter By
-            </span>
-
-            {/* Hidden on small screens */}
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>yyyy-mm-dd</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="hidden sm:flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>Order Type</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            <div className="flex items-center justify-between flex-1 sm:px-4 px-3 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-gray-100 focus:outline-none cursor-pointer">
-              <span>City</span>
-              <FaChevronDown className="ml-2" />
-            </div>
-
-            {/* Reset Button (hidden on small screens) */}
-            <button className="hidden sm:flex items-center justify-center px-4 bg-gray-50 text-red-500 font-medium border-l border-gray-300 sm:rounded-r-lg rounded-r-md hover:bg-red-50 focus:outline-none">
-              <FaRedo className="mr-2" />
-              Reset Filter
-            </button>
-          </div>
-
-          {/* Create Button Section */}
-          <div className="sm:col-span-1 col-span-2 flex items-center sm:rounded-lg rounded-md shadow-md">
-            <button className="bg-purple-600 text-white py-3 font-medium w-full h-[calc(100%)] sm:text-xl text-sm sm:rounded-lg rounded-md shadow-md hover:bg-purple-700 transition-all duration-200">
-              + Create
-            </button>
-          </div>
+        <div className={`grid ${userRole === "ENGINEER" ? "grid-cols-1" : "grid-cols-6"} gap-4 h-15 items-stretch`}>
+          <FilterSection />
+          <CreateButton userRole={userRole} onClick={handleOpenModal} />
         </div>
 
         {/* Bottom Row */}
@@ -351,21 +367,31 @@ const Dashboard = () => {
                     right: "",
                   }}
                   contentHeight="auto"
-                  events = {events}
-                  eventContent={(eventInfo) => (
-                    <div className="flex items-center">
-                      {/* Teks event dengan warna bergantian */}
-                      <span
-                        className={`font-semibold ${
-                          eventInfo.event._def.extendedProps.color === "green"
-                            ? "text-green-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        {eventInfo.event.title}
-                      </span>
-                    </div>
-                  )}
+                  events={events}
+                  eventContent={(eventInfo) => {
+                    const { color } = eventInfo.event.extendedProps;
+
+                    return (
+                      <div className="flex items-center">
+                        {/* Nama event dengan highlight warna status */}
+                        <span
+                          className={`font-semibold px-1 rounded ${
+                            color === "green"
+                              ? "bg-green-300 text-green-700"
+                              : color === "blue"
+                              ? "bg-blue-300 text-blue-700"
+                              : color === "yellow"
+                              ? "bg-yellow-300 text-yellow-700"
+                              : color === "red"
+                              ? "bg-red-300 text-red-700"
+                              : "bg-gray-300 text-gray-700"
+                          }`}
+                        >
+                          {eventInfo.event.title}
+                        </span>
+                      </div>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -382,64 +408,88 @@ const Dashboard = () => {
                   right: "next,dayGridDay,timeGridWeek,dayGridMonth",
                 }}
                 contentHeight="auto"
-                events={events}
-                // dateClick={handleDateClick}
-                eventContent={(eventInfo) => (
-                  <div className="flex items-center">
-                    {/* Titik biru di kiri */}
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
-                    {/* Teks event dengan warna bergantian */}
-                    <span
-                      className={`font-semibold ${
-                        eventInfo.event._def.extendedProps.color === "green"
-                          ? "text-green-500"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {eventInfo.event.title}
-                    </span>
-                  </div>
-                )}
+                events={events.map((event) => ({
+                  title: event.title,
+                  start: event.start,
+                  end: event.end,
+                  extendedProps: {
+                    color: event.extendedProps.color,
+                  },
+                }))}
+                eventContent={(eventInfo) => {
+                  const { color } = eventInfo.event.extendedProps;
+
+                  return (
+                    <div className="flex items-center">
+                      {/* Nama event dengan highlight warna status */}
+                      <span
+                        className={`font-semibold px-1 rounded ${
+                          color === "green"
+                            ? "bg-green-300 text-green-700"
+                            : color === "blue"
+                            ? "bg-blue-300 text-blue-700"
+                            : color === "yellow"
+                            ? "bg-yellow-300 text-yellow-700"
+                            : color === "red"
+                            ? "bg-red-300 text-red-700"
+                            : "bg-gray-300 text-gray-700"
+                        }`}
+                      >
+                        {eventInfo.event.title}
+                      </span>
+                    </div>
+                  );
+                }}
               />
             </div>
           </div>
           {/* Report Section */}
-          <div className="bg-white shadow-md p-4 rounded-lg w-full">
-            <h2 className="text-lg font-bold mb-2">Reports</h2>
+          <div className="bg-white shadow-md p-4 rounded-lg w-full max-h-[620px]">
+            <h2 className="text-lg font-bold">Reports</h2>
 
             <div className="pb-10 flex flex-col h-full justify-between">
               {/* Wrapper with fixed height */}
-              <div className="space-y-5 pt-5">
+              <div className="space-y-2 pt-5">
                 {currentReports.map((report) => (
                   <div
                     key={report.id}
                     className="bg-white p-4 shadow-md rounded-md border-t"
                   >
                     <h3 className="text-sm font-medium text-gray-700 mb-2 border-b pb-2">
-                      {report.name}
+                      {report.taskName}
                     </h3>
                     <div className="text-sm text-gray-500">
                       <p className="flex">
                         <span className="w-1/3 font-bold">ENGINEER</span>
                         <span className="w-2/3 font-semibold">
-                          : {report.engineer}
+                          : {report.engineerName}
                         </span>
                       </p>
                       <p className="flex">
-                        <span className="w-1/3 font-bold">DATE</span>
+                        <span className="w-1/3 font-bold">START DATE</span>
                         <span className="w-2/3 font-semibold">
-                          : {report.date}
+                          : {toReadableGMT7(report.startDate)}
+                        </span>
+                      </p>
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">END DATE</span>
+                        <span className="w-2/3 font-semibold">
+                          : {toReadableGMT7(report.endDate)}
                         </span>
                       </p>
                       <p className="flex">
                         <span className="w-1/3 font-bold">STATUS</span>
                         <span
                           className={`w-2/3 font-semibold ${
-                            report.status === "Completed"
+                            report.status === "ACCEPTED"
                               ? "text-green-600"
-                              : report.status === "Processing"
+                              : report.status === "RESCHEDULED"
                               ? "text-blue-600"
-                              : "text-red-600"
+                              : report.status === "PENDING"
+                              ? "text-yellow-600"
+                              : report.status === "REJECTED"
+                              ? "text-red-600"
+                              : "text-gray-600"
                           }`}
                         >
                           <span className="text-gray-500">:</span>{" "}
@@ -452,7 +502,7 @@ const Dashboard = () => {
               </div>
 
               {/* Pagination Controls */}
-              <div className="flex justify-between items-center mt-4">
+              <div className="flex justify-between items-center">
                 <button
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
@@ -480,11 +530,87 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </div>
+      {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
+        <CreateScheduleModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      )}
     </MainLayout>
   );
 };
+
+const FilterSection = () => (
+  <div className="col-span-2 flex items-stretch space-x-0 border rounded-md shadow-md">
+    <button className="flex items-center justify-center px-4 bg-gray-50 text-gray-500 font-medium border-gray-300 rounded-l-md hover:bg-gray-100 focus:outline-none">
+      <FaFilter />
+    </button>
+    <button className="flex items-center justify-center px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none">
+      Filter By
+    </button>
+    <div className="flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none">
+      <span>yyyy-mm-dd</span>
+      <FaChevronDown className="ml-2" />
+    </div>
+    <div className="flex items-center justify-between flex-1 px-4 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none">
+      <span>Order Type</span>
+      <FaChevronDown className="ml-2" />
+    </div>
+    <div className="flex items-center justify-between flex-1 px-3 bg-gray-50 text-gray-700 font-medium border-l border-gray-300 hover:bg-gray-100 focus:outline-none">
+      <span>City</span>
+      <FaChevronDown className="ml-2" />
+    </div>
+    <button className="flex items-center justify-center px-4 bg-gray-50 text-red-500 font-medium border-l border-gray-300 rounded-r-md hover:bg-red-50 focus:outline-none">
+      <FaRedo className="mr-2" />
+      Reset Filter
+    </button>
+  </div>
+);
+
+const CreateButtonSection = () => (
+  <div className="bg-white shadow-md p-4 rounded-md flex items-center justify-between">
+    <h2 className="text-lg font-bold">Create</h2>
+    <button className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+      + Create
+    </button>
+  </div>
+);
+
+const CalendarSection = ({ events, handleDateClick, handleDateSelect }: { events: any[], handleDateClick: (info: any) => void, handleDateSelect: (selectInfo: any) => void }) => (
+  <div className="col-span-1 md:col-span-2 bg-white shadow-md p-4 rounded-md h-[calc(100vh-120px)]">
+    <FullCalendar
+      plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+      initialView="dayGridMonth"
+      headerToolbar={{
+        left: "today,prev",
+        center: "title",
+        right: "next,timeGridWeek,dayGridMonth",
+      }}
+      events={events}
+      dateClick={handleDateClick}
+      selectable={true}
+      select={handleDateSelect}
+      height="auto"
+    />
+  </div>
+);
+
+const ReportSection = ({ events }: { events: any[] }) => (
+  <div className="bg-white shadow-md p-4 rounded-md h-[calc((100vh-320px)/2)]">
+    <h2 className="text-lg font-bold mb-2">Reports</h2>
+    <ul className="space-y-2">
+      {events.map((event, index) => (
+        <li
+          key={index}
+          className="flex justify-between items-center bg-gray-100 px-4 py-2 rounded-md"
+        >
+          <span>{event.title}</span>
+          <span className="text-sm text-gray-500">{event.date}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
 export default Dashboard;

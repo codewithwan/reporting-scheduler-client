@@ -1,8 +1,18 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import image from '../assets/image.png';
 
 // Component: Landing
 const Landing = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   // JSX
   return (
     <div className="flex flex-col min-h-screen font-poppins bg-white md:flex-row">

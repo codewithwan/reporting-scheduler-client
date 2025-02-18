@@ -1,4 +1,3 @@
-// Interface: UserData
 export interface UserData {
   createdAt: string | number | Date;
   id: string;
@@ -6,4 +5,5 @@ export interface UserData {
   email: string;
   role: string;
   timezone: string;
+  signature: string;
 }
