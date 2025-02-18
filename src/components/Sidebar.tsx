@@ -1,53 +1,100 @@
-import React from 'react';
-import { FaHome, FaCalendarAlt, FaUsers } from 'react-icons/fa';
-import { UserData } from '../models/UserData';
+
+import React from "react";
+import { AiFillProduct } from "react-icons/ai";
+import { FaHome, FaCalendarAlt } from "react-icons/fa";
+import { IoIosPerson } from "react-icons/io";
+import { MdEngineering } from "react-icons/md";
+import { RiCalendarScheduleFill, RiTodoFill } from "react-icons/ri";
+import { Link } from "react-router-dom";
+
+const menuItems = [
+  {
+    name: "Dashboard",
+    path: "/dashboard",
+    icon: <FaHome />,
+    roles: ["ENGINEER", "ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "ToDo",
+    path: "/todo",
+    icon: <RiTodoFill />,
+    roles: ["ENGINEER"],
+  },
+  {
+    name: "Report List",
+    path: "/reports",
+    icon: <FaCalendarAlt />,
+    roles: ["ENGINEER", "ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "Engineer List",
+    path: "/engineers",
+    icon: <MdEngineering />,
+    roles: ["ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "Customer List",
+    path: "/customers",
+    icon: <IoIosPerson />,
+    roles: ["ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "Product List",
+    path: "/products",
+    icon: <AiFillProduct />,
+    roles: ["ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "Reschedule Request",
+    path: "/reschedule",
+    icon: <RiCalendarScheduleFill />,
+    roles: ["ENGINEER", "ADMIN", "SUPERADMIN"],
+  },
+];
 
 interface SidebarProps {
-  selectedMenu: string;
-  handleMenuClick: (menu: string) => void;
-  userData: UserData | null;
   isDrawerOpen: boolean;
+  selectedMenu: string;
+  role: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedMenu, handleMenuClick, userData, isDrawerOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  isDrawerOpen,
+  selectedMenu,
+  role,
+}) => {
+  // Filter menu berdasarkan role pengguna
+  const filteredMenu = menuItems.filter((item) => item.roles.includes(role));
+
   return (
-    <nav className={`bg-white shadow-md w-64 fixed h-full transition-transform transform ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+    <nav
+      className={`bg-white shadow-md w-64 fixed h-full transition-transform transform ${
+        isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0 z-20`}
+    >
       <div className="h-20 flex items-center justify-center">
-        <h1 className="text-xl font-bold">Reports Scheduler</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+          Reports Scheduler
+        </h1>
       </div>
-      <div className="flex-1 flex flex-col justify-center mt-5">
-        <ul className="space-y-2">
-          <li
-            className={`flex items-center px-4 py-5 mx-auto w-4/5 rounded-xl cursor-pointer ${
-              selectedMenu === 'Dashboard' ? 'bg-[#9854CB] text-white' : 'hover:bg-gray-200'
-            }`}
-            onClick={() => handleMenuClick('Dashboard')}
-          >
-            <FaHome className="mr-2" />
-            <span>Dashboard</span>
-          </li>
-          <li
-            className={`flex items-center px-4 py-5 mx-auto w-4/5 rounded-xl cursor-pointer ${
-              selectedMenu === 'Report List' ? 'bg-[#9854CB] text-white' : 'hover:bg-gray-200'
-            }`}
-            onClick={() => handleMenuClick('Report List')}
-          >
-            <FaCalendarAlt className="mr-2" />
-            <span>Report List</span>
-          </li>
-          {userData && (userData.role === 'SUPERADMIN' || userData.role === 'ADMIN') && (
-            <li
-              className={`flex items-center px-4 py-5 mx-auto w-4/5 rounded-xl cursor-pointer ${
-                selectedMenu === 'Users' ? 'bg-[#9854CB] text-white' : 'hover:bg-gray-200'
+      <ul className="mt-6 space-y-3">
+        {filteredMenu.map(({ name, path, icon }) => (
+          <li key={name}>
+            <Link
+              to={path}
+              className={`flex items-center w-11/12 mx-auto px-4 py-3 rounded-xl ${
+                selectedMenu === path
+                  ? "bg-purple-600 text-white"
+                  : "hover:bg-gray-100 text-gray-700"
               }`}
-              onClick={() => handleMenuClick('Users')}
             >
-              <FaUsers className="mr-2" />
-              <span>Users</span>
-            </li>
-          )}
-        </ul>
-      </div>
+              {icon}
+              <span className="ml-3">{name}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
     </nav>
   );
 };

@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../services/api';
 import image from '../assets/image.png';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import LoadingOverlay from '../components/LoadingOverlay'; // Import LoadingOverlay component
+
+interface RegisterProps {
+  showNotification: (message: string, type: "success" | "error") => void;
+}
 
 // Component: Register
-const Register = () => {
+const Register: React.FC<RegisterProps> = ({ showNotification }) => {
   // State Hooks
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,9 +18,15 @@ const Register = () => {
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [notification, setNotification] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   // Helper Functions
   const validateEmail = (email: string) => {
@@ -27,33 +38,37 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateEmail(email)) {
-      setError('Invalid email format.');
+      showNotification('Invalid email format.', 'error');
       return;
     }
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
+      showNotification('Password must be at least 8 characters long.', 'error');
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      showNotification('Passwords do not match.', 'error');
       return;
     }
+    setLoading(true); // Set loading to true
     try {
       const response = await register(email, password, name);
       console.log('Registration successful:', response.data);
-      setNotification('Registration successful! Please log in.');
+      showNotification('Registration successful! Please log in.', 'success');
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (error) {
       console.error('Registration failed:', error);
-      setError('Registration failed. Please try again.');
+      showNotification('Registration failed. Please try again.', 'error');
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
   // JSX
   return (
-    <div className="flex flex-col min-h-screen font-poppins bg-white md:flex-row">
+    <div className="relative flex flex-col min-h-screen font-poppins bg-white md:flex-row">
+      {loading && <LoadingOverlay />} {/* Show loading overlay */}
       <div className="relative flex items-center justify-center bg-white md:flex-[2] md:order-2 rounded-tl-2xl rounded-bl-2xl md:bg-[#DDACF5]">
         <div className="absolute w-[80%] h-[50%] bg-[#DDACF5] rounded-tl-lg rounded-bl-lg rounded-tr-lg" style={{ top: '50%', transform: 'translateY(-50%)' }}></div>
         <img 
@@ -67,8 +82,6 @@ const Register = () => {
       <div className="flex items-center justify-center flex-[3] p-8 md:p-0 bg-white md:bg-transparent">
         <div className="w-full max-w-md space-y-6">
           <h2 className="text-3xl font-bold text-left mb-8">Register</h2>
-          {notification && <div className="text-green-500 mb-4">{notification}</div>} {/* Notification */}
-          {error && <div className="text-red-500 mb-4">{error}</div>} {/* Error */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium">Name:</label>
