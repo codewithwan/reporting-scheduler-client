@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import MainLayout from "../components/MainLayout";
 import FilterSection from "../components/FilterSection";
@@ -426,6 +427,7 @@ const ReportList = () => {
         onClose={handleCloseModal}
       />
     </MainLayout>
+
   );
 };
 

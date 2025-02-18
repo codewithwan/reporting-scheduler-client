@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AiFillProduct } from "react-icons/ai";
 import { FaHome, FaCalendarAlt } from "react-icons/fa";
@@ -93,6 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </li>
         ))}
       </ul>
+
     </nav>
   );
 };

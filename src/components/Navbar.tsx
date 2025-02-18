@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import {
   FaBars,
@@ -131,6 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
+
     </nav>
   );
 };
