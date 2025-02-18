@@ -10,7 +10,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [userData, setUserData] = useState<{ name: string } | null>(null);
+  const [userData, setUserData] = useState<{ name: string; email: string } | null>(null);
   const role = localStorage.getItem("role") || "ENGINEER";
   const location = useLocation();
   const navigate = useNavigate();

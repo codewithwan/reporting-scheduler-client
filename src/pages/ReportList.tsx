@@ -8,22 +8,17 @@ import {
   fetchUserProfile,
   fetchSchedules,
   updateScheduleStatus,
-  fetchUsers,
 } from "../services/api";
 import CreateScheduleModal from "../components/CreateScheduleModal";
 import { Schedule } from "../models/Schedule";
 import { toGMT7, toReadableGMT7 } from "../utils/dateUtils";
-import { Engineer } from "../models/Engineer";
 import RescheduleModal from "../components/RescheduleModal";
 
 const ReportList = () => {
   const [reports, setReports] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [engineers, setEngineers] = useState<Engineer[]>([]);
-  const [filteredEngineers, setFilteredEngineers] = useState<Engineer[]>([]);
   const [userRole, setUserRole] = useState("");
   const [openModal, setOpenModal] = useState<"create" | "update" | null>(null);
-  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Schedule | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);

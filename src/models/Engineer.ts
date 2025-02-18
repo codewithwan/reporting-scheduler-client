@@ -3,4 +3,5 @@ export interface Engineer {
   name: string;
   email: string;
   role: "ENGINEER";
+  signature: string;
 }

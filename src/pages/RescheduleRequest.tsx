@@ -15,15 +15,15 @@ import { Schedule } from "../models/Schedule";
 import { Engineer } from "../models/Engineer";
 
 const RescheduleRequest = () => {
-  const [reschedules, setReschedules] = useState<Reschedule[]>([]);
+  const [, setReschedules] = useState<Reschedule[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [engineers, setEngineers] = useState<Engineer[]>([]);
   const [filteredReschedules, setFilteredReschedules] = useState<Reschedule[]>(
     []
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
+  const [, setUserRole] = useState<string>("");
+  const [, setUserId] = useState<string>("");
 
   useEffect(() => {
     const getSchedules = async () => {
