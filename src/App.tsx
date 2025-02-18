@@ -21,6 +21,7 @@ const ReportList = lazy(() => import("./pages/ReportList"));
 const EngineerList = lazy(() => import("./pages/EngineerList"));
 const CustomerList = lazy(() => import("./pages/CustomerList"));
 const ProductList = lazy(() => import("./pages/ProductList"));
+const RescheduleRequest = lazy(() => import("./pages/RescheduleRequest"));
 
 function App() {
   const token = localStorage.getItem("token");
@@ -134,6 +135,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
                   <ProductList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reschedule"
+              element={
+                <ProtectedRoute>
+                  <RescheduleRequest />
                 </ProtectedRoute>
               }
             />

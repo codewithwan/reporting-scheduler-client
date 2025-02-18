@@ -3,7 +3,7 @@ import { AiFillProduct } from "react-icons/ai";
 import { FaHome, FaCalendarAlt } from "react-icons/fa";
 import { IoIosPerson } from "react-icons/io";
 import { MdEngineering } from "react-icons/md";
-import { RiTodoFill } from "react-icons/ri";
+import { RiCalendarScheduleFill, RiTodoFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
 
 const menuItems = [
@@ -42,6 +42,12 @@ const menuItems = [
     path: "/products",
     icon: <AiFillProduct />,
     roles: ["ADMIN", "SUPERADMIN"],
+  },
+  {
+    name: "Reschedule Request",
+    path: "/reschedule",
+    icon: <RiCalendarScheduleFill />,
+    roles: ["ENGINEER", "ADMIN", "SUPERADMIN"],
   },
 ];
 

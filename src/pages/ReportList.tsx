@@ -139,7 +139,10 @@ const ReportList = () => {
           } gap-4 h-15 items-stretch`}
         >
           <FilterSection />
-          <CreateButton userRole={userRole} onClick={() => handleOpenModal("create")} />
+          <CreateButton
+            userRole={userRole}
+            onClick={() => handleOpenModal("create")}
+          />
         </div>
 
         <div style={{ minHeight }}>
@@ -168,192 +171,199 @@ const ReportList = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-100">
-                    <td className="ps-4 py-4 text-sm font-medium text-gray-700 border-b">
+                {paginatedReports
+                  .filter((report) => report.status !== "RESCHEDULED")
+                  .map((report) => (
+                    <tr key={report.id} className="hover:bg-gray-100">
+                      <td className="ps-4 py-4 text-sm font-medium text-gray-700 border-b">
+                        {report.taskName}
+                      </td>
+                      <td className="py-4 text-sm text-gray-700 border-b">
+                        {report.engineerName}
+                      </td>
+                      <td className="py-4 text-sm text-gray-700 border-b">
+                        {toReadableGMT7(report.startDate)}
+                      </td>
+                      <td className="py-4 text-sm text-gray-700 border-b">
+                        {toReadableGMT7(report.endDate)}
+                      </td>
+                      <td className="py-4 text-sm font-medium border-b text-center">
+                        <span
+                          className={`${
+                            report.status === "ACCEPTED"
+                              ? "text-green-600"
+                              : report.status === "RESCHEDULED"
+                              ? "text-blue-600"
+                              : report.status === "PENDING"
+                              ? "text-yellow-600"
+                              : report.status === "REJECTED"
+                              ? "text-red-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {report.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-center border-b space-x-2 h-16">
+                        {report.status === "PENDING" &&
+                          userRole === "ENGINEER" && (
+                            <>
+                              <button
+                                onClick={() => handleAccept(report.id)}
+                                className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                onClick={() => handleReschedule(report)}
+                                className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                              >
+                                Reschedule
+                              </button>
+                            </>
+                          )}
+                        {report.status === "PENDING" &&
+                          userRole === "ADMIN" && (
+                            <>
+                              <button
+                                onClick={() => handleReschedule(report)}
+                                className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleReject(report.id)}
+                                className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+            {/* Responsive Version */}
+            <div className="flex flex-col space-y-4 md:hidden">
+              {paginatedReports
+                .filter((report) => report.status !== "RESCHEDULED")
+                .map((report) => (
+                  <div
+                    key={report.id}
+                    className="bg-white p-4 shadow-md rounded-md"
+                  >
+                    <h3 className="text-sm font-medium text-gray-700 mb-2 border-b pb-2">
                       {report.taskName}
-                    </td>
-                    <td className="py-4 text-sm text-gray-700 border-b">
-                      {report.engineerName}
-                    </td>
-                    <td className="py-4 text-sm text-gray-700 border-b">
-                      {toReadableGMT7(report.startDate)}
-                    </td>
-                    <td className="py-4 text-sm text-gray-700 border-b">
-                      {toReadableGMT7(report.endDate)}
-                    </td>
-                    <td className="py-4 text-sm font-medium border-b text-center">
-                      <span
-                        className={`${
-                          report.status === "ACCEPTED"
-                            ? "text-green-600"
-                            : report.status === "RESCHEDULED"
-                            ? "text-blue-600"
-                            : report.status === "PENDING"
-                            ? "text-yellow-600"
-                            : report.status === "REJECTED"
-                            ? "text-red-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {report.status}
-                      </span>
-                    </td>
-                    <td className="py-4 text-center border-b space-x-2 h-16">
-                      {report.status === "PENDING" &&
-                        userRole === "ENGINEER" && (
+                    </h3>
+                    <div className="text-sm text-gray-500">
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">ENGINEER</span>
+                        <span className="w-2/3 font-semibold">
+                          : {report.engineerName}
+                        </span>
+                      </p>
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">START DATE</span>
+                        <span className="w-2/3 font-semibold">
+                          : {toReadableGMT7(report.startDate)}
+                        </span>
+                      </p>
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">END DATE</span>
+                        <span className="w-2/3 font-semibold">
+                          : {toReadableGMT7(report.endDate)}
+                        </span>
+                      </p>
+                      <p className="flex">
+                        <span className="w-1/3 font-bold">STATUS</span>
+                        <span
+                          className={`w-2/3 font-semibold ${
+                            report.status === "ACCEPTED"
+                              ? "text-green-600"
+                              : report.status === "RESCHEDULED"
+                              ? "text-blue-600"
+                              : report.status === "PENDING"
+                              ? "text-yellow-600"
+                              : report.status === "REJECTED"
+                              ? "text-red-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          <span className="text-gray-500">:</span>{" "}
+                          {report.status}
+                        </span>
+                      </p>
+                    </div>
+                    {report.status === "PENDING" && (
+                      <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
+                        {userRole === "ENGINEER" && (
                           <>
                             <button
                               onClick={() => handleAccept(report.id)}
-                              className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                              className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
                             >
                               Accept
                             </button>
                             <button
                               onClick={() => handleReschedule(report)}
-                              className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                              className="w-1/2 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
                             >
                               Reschedule
                             </button>
                           </>
                         )}
-                      {report.status === "PENDING" && userRole === "ADMIN" && (
-                        <>
+                        {userRole === "ADMIN" && (
+                          <>
+                            <button
+                              onClick={() => handleReschedule(report)}
+                              className="w-1/2 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              onClick={() => handleReject(report.id)}
+                              className="w-1/2 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {report.status === "RESCHEDULED" && (
+                      <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
+                        {userRole === "ADMIN" && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(report.id)}
+                              className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleReject(report.id)}
+                              className="w-1/2 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {report.status === "REJECTED" &&
+                      userRole === "ENGINEER" && (
+                        <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
                           <button
-                            onClick={() => handleReschedule(report)}
-                            className="px-2 py-2 text-sm font-medium text-blue-800 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
+                            onClick={() => handleAccept(report.id)}
+                            className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
                           >
-                            Reschedule
+                            Accept
                           </button>
-                          <button
-                            onClick={() => handleReject(report.id)}
-                            className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                          >
-                            Cancel
-                          </button>
-                        </>
+                        </div>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Responsive Version */}
-            <div className="flex flex-col space-y-4 md:hidden">
-              {reports.map((report) => (
-                <div
-                  key={report.id}
-                  className="bg-white p-4 shadow-md rounded-md"
-                >
-                  <h3 className="text-sm font-medium text-gray-700 mb-2 border-b pb-2">
-                    {report.taskName}
-                  </h3>
-                  <div className="text-sm text-gray-500">
-                    <p className="flex">
-                      <span className="w-1/3 font-bold">ENGINEER</span>
-                      <span className="w-2/3 font-semibold">
-                        : {report.engineerName}
-                      </span>
-                    </p>
-                    <p className="flex">
-                      <span className="w-1/3 font-bold">START DATE</span>
-                      <span className="w-2/3 font-semibold">
-                        : {toReadableGMT7(report.startDate)}
-                      </span>
-                    </p>
-                    <p className="flex">
-                      <span className="w-1/3 font-bold">END DATE</span>
-                      <span className="w-2/3 font-semibold">
-                        : {toReadableGMT7(report.endDate)}
-                      </span>
-                    </p>
-                    <p className="flex">
-                      <span className="w-1/3 font-bold">STATUS</span>
-                      <span
-                        className={`w-2/3 font-semibold ${
-                          report.status === "ACCEPTED"
-                            ? "text-green-600"
-                            : report.status === "RESCHEDULED"
-                            ? "text-blue-600"
-                            : report.status === "PENDING"
-                            ? "text-yellow-600"
-                            : report.status === "REJECTED"
-                            ? "text-red-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        <span className="text-gray-500">:</span> {report.status}
-                      </span>
-                    </p>
                   </div>
-                  {report.status === "PENDING" && (
-                    <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
-                      {userRole === "ENGINEER" && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(report.id)}
-                            className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleReschedule(report)}
-                            className="w-1/2 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                          >
-                            Reschedule
-                          </button>
-                        </>
-                      )}
-                      {userRole === "ADMIN" && (
-                        <>
-                          <button
-                            onClick={() => handleReschedule(report)}
-                            className="w-1/2 px-2 py-2 text-sm font-medium text-blue-600 bg-blue-200 rounded-md hover:text-white hover:bg-blue-500"
-                          >
-                            Reschedule
-                          </button>
-                          <button
-                            onClick={() => handleReject(report.id)}
-                            className="w-1/2 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  {report.status === "RESCHEDULED" && (
-                    <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
-                      {userRole === "ADMIN" && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(report.id)}
-                            className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleReject(report.id)}
-                            className="w-1/2 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  {report.status === "REJECTED" && userRole === "ENGINEER" && (
-                    <div className="flex items-center justify-between gap-x-2 mt-4 border-t pt-2 h-16">
-                      <button
-                        onClick={() => handleAccept(report.id)}
-                        className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
-                      >
-                        Accept
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>
@@ -405,9 +415,16 @@ const ReportList = () => {
         </div>
       </div>
       {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
-        <CreateScheduleModal isOpen={openModal === "create"} onClose={handleCloseModal} />
+        <CreateScheduleModal
+          isOpen={openModal === "create"}
+          onClose={handleCloseModal}
+        />
       )}
-      <RescheduleModal isOpen={openModal === "update"} report={selectedReport} onClose={handleCloseModal} userRole={userRole} />
+      <RescheduleModal
+        isOpen={openModal === "update"}
+        report={selectedReport}
+        onClose={handleCloseModal}
+      />
     </MainLayout>
   );
 };

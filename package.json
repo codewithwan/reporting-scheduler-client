@@ -19,6 +19,7 @@
     "@react-pdf/renderer": "^4.2.1",
     "@types/axios": "^0.14.4",
     "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "jspdf-autotable": "^3.8.4",
     "pdf-lib": "^1.17.1",

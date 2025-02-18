@@ -3,7 +3,7 @@ import { toUTC } from "../utils/dateUtils";
 
 // API Configuration
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/v1",
+  baseURL: import.meta.env.VITE_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -238,5 +238,14 @@ export const updateScheduleStatus = (id: string, status: string) =>
 
 export const cancelSchedule = (id: string) =>
   api.patch(`/schedules/${id}/status`, { status: "CANCELED" });
+
+// Reschedule Services
+export const fetchReschedules = () => api.get("/reschedules");
+
+export const createReschedule = async (RescheduleData: any) =>
+  await api.post("/reschedules", RescheduleData);
+
+export const updateRescheduleStatus = (id: string, status: string) =>
+  api.patch(`/reschedules/${id}/status`, { status });
 
 export default api;
