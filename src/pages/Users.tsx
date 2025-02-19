@@ -5,7 +5,7 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const Users = () => {
   const [users, setUsers] = useState<UserData[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [, setSelectedUser] = useState<UserData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -31,6 +31,7 @@ const Users = () => {
   };
 
   const handleDelete = (userId: string) => {
+    console.log(userId)
     // Implement delete logic here
   };
 

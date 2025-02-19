@@ -191,7 +191,7 @@ const RescheduleRequest = () => {
                     {reschedule.status === "PENDING" ? (
                       <td className="px-6 py-4 text-sm font-medium text-gray-700 border-b">
                         <button
-                          className="text-green-500 hover:text-green-700"
+                          className="px-3 py-2 text-sm font-medium text-green-800 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
                           onClick={() =>
                             handleAccept(reschedule.id, reschedule.scheduleId)
                           }
@@ -199,7 +199,7 @@ const RescheduleRequest = () => {
                           Accept
                         </button>
                         <button
-                          className="ml-4 text-red-500 hover:text-red-700"
+                          className="px-3 py-2 text-sm font-medium text-red-800 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
                           onClick={() =>
                             handleReject(reschedule.id, reschedule.scheduleId)
                           }
@@ -261,7 +261,7 @@ const RescheduleRequest = () => {
                 {reschedule.status === "PENDING" ? (
                   <div className="mt-2">
                     <button
-                      className="text-green-500 hover:text-green-700"
+                      className="w-1/2 py-2 text-sm font-medium text-green-600 bg-green-200 rounded-md hover:text-white hover:bg-green-500"
                       onClick={() =>
                         handleAccept(reschedule.id, reschedule.scheduleId)
                       }
@@ -269,7 +269,7 @@ const RescheduleRequest = () => {
                       Accept
                     </button>
                     <button
-                      className="ml-4 text-red-500 hover:text-red-700"
+                      className="w-1/2 py-2 text-sm font-medium text-red-600 bg-red-200 rounded-md hover:text-white hover:bg-red-500"
                       onClick={() =>
                         handleReject(reschedule.id, reschedule.scheduleId)
                       }
