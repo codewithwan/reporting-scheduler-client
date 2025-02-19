@@ -47,10 +47,9 @@ const CreateScheduleModal: React.FC<CreateScheduleModalProps> = ({
   >([]);
   const [] = useState("");
   const [] = useState(false);
-  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>(
+  const [, setProvinces] = useState<{ id: string; name: string }[]>(
     []
   );
-  const [cities] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");

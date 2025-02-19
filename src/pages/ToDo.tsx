@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/MainLayout";
 import { Schedule } from "../models/Schedule";
@@ -15,9 +15,9 @@ import { Customer } from "../models/Customer";
 const Todo = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [reports, setReports] = useState<Schedule[]>([]);
-  const [filteredReports, setFilteredReports] = useState<Schedule[]>([]);
+  const [, setFilteredReports] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState("");
+  const [, setUserRole] = useState("");
   const navigate = useNavigate();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Schedule | null>(null);
